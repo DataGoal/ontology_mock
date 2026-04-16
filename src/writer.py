@@ -116,7 +116,6 @@ class DatabricksWriter:
 
         # Create catalog (Unity Catalog only) and schema if they do not exist
         if catalog:
-            self.spark.sql(f"CREATE CATALOG IF NOT EXISTS `{catalog}`")
             self.spark.sql(f"USE CATALOG `{catalog}`")
 
         self.spark.sql(f"CREATE SCHEMA IF NOT EXISTS `{schema}`")

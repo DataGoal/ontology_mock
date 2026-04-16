@@ -94,7 +94,7 @@ if _in_databricks:
     )
 
     PROFILE      = dbutils.widgets.get("profile").strip() or "dev"
-    CATALOG      = dbutils.widgets.get("catalog").strip() or None
+    CATALOG      = dbutils.widgets.get("catalog").strip() or "nike_databricks"
     DB_SCHEMA    = dbutils.widgets.get("db_schema").strip() or "cpg_supply_chain"
     CONFIGS_PATH = dbutils.widgets.get("configs_path").strip() or "configs"
     WRITE_MODE   = dbutils.widgets.get("write_mode").strip()
