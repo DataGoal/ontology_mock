@@ -76,9 +76,9 @@ profiles:
 
 # Output configuration
 output:
-  format: csv           # Options: csv, parquet, json
-  output_dir: ./output
-  compress: false        # Set true for parquet gzip compression
+  format: parquet           # Options: csv, parquet, json
+  output_dir: /Volumes/nike_databricks/cpg_supply_chain/table_mock_data
+  compress: true        # Set true for parquet gzip compression
   include_header: true
   encoding: utf-8
   decimal_places: 4

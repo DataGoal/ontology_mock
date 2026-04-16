@@ -9,32 +9,32 @@
 -- Run after initial data load; re-run after large incremental loads.
 -- =============================================================================
 
-OPTIMIZE cpg_supply_chain.dim_date;
-OPTIMIZE cpg_supply_chain.dim_vendor;
-OPTIMIZE cpg_supply_chain.dim_plant;
-OPTIMIZE cpg_supply_chain.dim_shift;
-OPTIMIZE cpg_supply_chain.dim_warehouse;
-OPTIMIZE cpg_supply_chain.dim_carrier;
-OPTIMIZE cpg_supply_chain.dim_product;
-OPTIMIZE cpg_supply_chain.dim_customer;
-OPTIMIZE cpg_supply_chain.dim_destination;
+OPTIMIZE nike_databricks.cpg_supply_chain.dim_date;
+OPTIMIZE nike_databricks.cpg_supply_chain.dim_vendor;
+OPTIMIZE nike_databricks.cpg_supply_chain.dim_plant;
+OPTIMIZE nike_databricks.cpg_supply_chain.dim_shift;
+OPTIMIZE nike_databricks.cpg_supply_chain.dim_warehouse;
+OPTIMIZE nike_databricks.cpg_supply_chain.dim_carrier;
+OPTIMIZE nike_databricks.cpg_supply_chain.dim_product;
+OPTIMIZE nike_databricks.cpg_supply_chain.dim_customer;
+OPTIMIZE nike_databricks.cpg_supply_chain.dim_destination;
 
-OPTIMIZE cpg_supply_chain.fact_procurement;
-OPTIMIZE cpg_supply_chain.fact_manufacturing;
-OPTIMIZE cpg_supply_chain.fact_inventory;
-OPTIMIZE cpg_supply_chain.fact_shipment;
-OPTIMIZE cpg_supply_chain.fact_sales_demand;
+OPTIMIZE nike_databricks.cpg_supply_chain.fact_procurement;
+OPTIMIZE nike_databricks.cpg_supply_chain.fact_manufacturing;
+OPTIMIZE nike_databricks.cpg_supply_chain.fact_inventory;
+OPTIMIZE nike_databricks.cpg_supply_chain.fact_shipment;
+OPTIMIZE nike_databricks.cpg_supply_chain.fact_sales_demand;
 
 -- Z-Order on most common analytical join keys
-OPTIMIZE cpg_supply_chain.fact_procurement    ZORDER BY (vendor_id, product_id);
-OPTIMIZE cpg_supply_chain.fact_manufacturing  ZORDER BY (plant_id, product_id);
-OPTIMIZE cpg_supply_chain.fact_inventory      ZORDER BY (warehouse_id, product_id);
-OPTIMIZE cpg_supply_chain.fact_shipment       ZORDER BY (carrier_id, product_id);
-OPTIMIZE cpg_supply_chain.fact_sales_demand   ZORDER BY (customer_id, product_id);
+OPTIMIZE nike_databricks.cpg_supply_chain.fact_procurement    ZORDER BY (vendor_id, product_id);
+OPTIMIZE nike_databricks.cpg_supply_chain.fact_manufacturing  ZORDER BY (plant_id, product_id);
+OPTIMIZE nike_databricks.cpg_supply_chain.fact_inventory      ZORDER BY (warehouse_id, product_id);
+OPTIMIZE nike_databricks.cpg_supply_chain.fact_shipment       ZORDER BY (carrier_id, product_id);
+OPTIMIZE nike_databricks.cpg_supply_chain.fact_sales_demand   ZORDER BY (customer_id, product_id);
 
 -- Analyze tables for query statistics
-ANALYZE TABLE cpg_supply_chain.dim_product     COMPUTE STATISTICS FOR ALL COLUMNS;
-ANALYZE TABLE cpg_supply_chain.fact_sales_demand COMPUTE STATISTICS FOR ALL COLUMNS;
+ANALYZE TABLE nike_databricks.cpg_supply_chain.dim_product     COMPUTE STATISTICS FOR ALL COLUMNS;
+ANALYZE TABLE nike_databricks.cpg_supply_chain.fact_sales_demand COMPUTE STATISTICS FOR ALL COLUMNS;
 
 -- =============================================================================
 -- SEMANTIC LAYER VIEWS
@@ -42,7 +42,7 @@ ANALYZE TABLE cpg_supply_chain.fact_sales_demand COMPUTE STATISTICS FOR ALL COLU
 -- =============================================================================
 
 -- ── V_PROCUREMENT_ENRICHED ─────────────────────────────────────────────────
-CREATE OR REPLACE VIEW cpg_supply_chain.v_procurement_enriched AS
+CREATE OR REPLACE VIEW nike_databricks.cpg_supply_chain.v_procurement_enriched AS
 SELECT
   fp.procurement_id,
   dd.full_date                          AS order_date,
@@ -78,15 +78,15 @@ SELECT
   CASE WHEN fp.lead_time_days > dv.avg_lead_time_days * 1.20 THEN 'Late'
        WHEN fp.lead_time_days < dv.avg_lead_time_days * 0.80 THEN 'Early'
        ELSE 'On-Time' END               AS lead_time_performance
-FROM cpg_supply_chain.fact_procurement fp
-JOIN cpg_supply_chain.dim_date        dd ON fp.date_id       = dd.date_id
-JOIN cpg_supply_chain.dim_vendor      dv ON fp.vendor_id     = dv.vendor_id
-JOIN cpg_supply_chain.dim_product     dp ON fp.product_id    = dp.product_id
-JOIN cpg_supply_chain.dim_warehouse   dw ON fp.warehouse_id  = dw.warehouse_id;
+FROM nike_databricks.cpg_supply_chain.fact_procurement fp
+JOIN nike_databricks.cpg_supply_chain.dim_date        dd ON fp.date_id       = dd.date_id
+JOIN nike_databricks.cpg_supply_chain.dim_vendor      dv ON fp.vendor_id     = dv.vendor_id
+JOIN nike_databricks.cpg_supply_chain.dim_product     dp ON fp.product_id    = dp.product_id
+JOIN nike_databricks.cpg_supply_chain.dim_warehouse   dw ON fp.warehouse_id  = dw.warehouse_id;
 
 
 -- ── V_MANUFACTURING_ENRICHED ───────────────────────────────────────────────
-CREATE OR REPLACE VIEW cpg_supply_chain.v_manufacturing_enriched AS
+CREATE OR REPLACE VIEW nike_databricks.cpg_supply_chain.v_manufacturing_enriched AS
 SELECT
   fm.manufacturing_id,
   dd.full_date                           AS production_date,
@@ -118,15 +118,15 @@ SELECT
   CASE WHEN fm.machine_utilization_pct >= 90 THEN 'High'
        WHEN fm.machine_utilization_pct >= 70 THEN 'Medium'
        ELSE 'Low' END                    AS utilization_band
-FROM cpg_supply_chain.fact_manufacturing fm
-JOIN cpg_supply_chain.dim_date     dd  ON fm.date_id    = dd.date_id
-JOIN cpg_supply_chain.dim_plant    dp2 ON fm.plant_id   = dp2.plant_id
-JOIN cpg_supply_chain.dim_product  dp  ON fm.product_id = dp.product_id
-JOIN cpg_supply_chain.dim_shift    ds  ON fm.shift_id   = ds.shift_id;
+FROM nike_databricks.cpg_supply_chain.fact_manufacturing fm
+JOIN nike_databricks.cpg_supply_chain.dim_date     dd  ON fm.date_id    = dd.date_id
+JOIN nike_databricks.cpg_supply_chain.dim_plant    dp2 ON fm.plant_id   = dp2.plant_id
+JOIN nike_databricks.cpg_supply_chain.dim_product  dp  ON fm.product_id = dp.product_id
+JOIN nike_databricks.cpg_supply_chain.dim_shift    ds  ON fm.shift_id   = ds.shift_id;
 
 
 -- ── V_INVENTORY_HEALTH ─────────────────────────────────────────────────────
-CREATE OR REPLACE VIEW cpg_supply_chain.v_inventory_health AS
+CREATE OR REPLACE VIEW nike_databricks.cpg_supply_chain.v_inventory_health AS
 SELECT
   fi.inventory_id,
   dd.full_date                           AS snapshot_date,
@@ -153,14 +153,14 @@ SELECT
        WHEN fi.overstock_flag = 1 THEN 'Overstock'
        WHEN fi.stock_on_hand  < fi.safety_stock * 1.2 THEN 'Near-Stockout'
        ELSE 'Healthy' END               AS inventory_health_status
-FROM cpg_supply_chain.fact_inventory fi
-JOIN cpg_supply_chain.dim_date      dd ON fi.date_id      = dd.date_id
-JOIN cpg_supply_chain.dim_warehouse dw ON fi.warehouse_id = dw.warehouse_id
-JOIN cpg_supply_chain.dim_product   dp ON fi.product_id   = dp.product_id;
+FROM nike_databricks.cpg_supply_chain.fact_inventory fi
+JOIN nike_databricks.cpg_supply_chain.dim_date      dd ON fi.date_id      = dd.date_id
+JOIN nike_databricks.cpg_supply_chain.dim_warehouse dw ON fi.warehouse_id = dw.warehouse_id
+JOIN nike_databricks.cpg_supply_chain.dim_product   dp ON fi.product_id   = dp.product_id;
 
 
 -- ── V_SHIPMENT_PERFORMANCE ─────────────────────────────────────────────────
-CREATE OR REPLACE VIEW cpg_supply_chain.v_shipment_performance AS
+CREATE OR REPLACE VIEW nike_databricks.cpg_supply_chain.v_shipment_performance AS
 SELECT
   fs.shipment_id,
   dd.full_date                           AS ship_date,
@@ -194,16 +194,16 @@ SELECT
   CASE WHEN fs.delivery_variance_days <= 0
             AND fs.quantity_received >= fs.quantity_shipped * 0.98
        THEN 1 ELSE 0 END                AS otif_flag
-FROM cpg_supply_chain.fact_shipment     fs
-JOIN cpg_supply_chain.dim_date          dd    ON fs.date_id             = dd.date_id
-JOIN cpg_supply_chain.dim_carrier       dc    ON fs.carrier_id          = dc.carrier_id
-JOIN cpg_supply_chain.dim_product       dp    ON fs.product_id          = dp.product_id
-JOIN cpg_supply_chain.dim_warehouse     dw    ON fs.origin_warehouse_id = dw.warehouse_id
-JOIN cpg_supply_chain.dim_destination   ddest ON fs.destination_id      = ddest.destination_id;
+FROM nike_databricks.cpg_supply_chain.fact_shipment     fs
+JOIN nike_databricks.cpg_supply_chain.dim_date          dd    ON fs.date_id             = dd.date_id
+JOIN nike_databricks.cpg_supply_chain.dim_carrier       dc    ON fs.carrier_id          = dc.carrier_id
+JOIN nike_databricks.cpg_supply_chain.dim_product       dp    ON fs.product_id          = dp.product_id
+JOIN nike_databricks.cpg_supply_chain.dim_warehouse     dw    ON fs.origin_warehouse_id = dw.warehouse_id
+JOIN nike_databricks.cpg_supply_chain.dim_destination   ddest ON fs.destination_id      = ddest.destination_id;
 
 
 -- ── V_SALES_DEMAND_ENRICHED ────────────────────────────────────────────────
-CREATE OR REPLACE VIEW cpg_supply_chain.v_sales_demand_enriched AS
+CREATE OR REPLACE VIEW nike_databricks.cpg_supply_chain.v_sales_demand_enriched AS
 SELECT
   fsd.demand_id,
   dd.full_date                           AS order_date,
@@ -238,18 +238,18 @@ SELECT
        WHEN fsd.fulfillment_rate_pct >= 95 THEN 'Good'
        WHEN fsd.fulfillment_rate_pct >= 90 THEN 'Acceptable'
        ELSE 'Poor' END                   AS fulfillment_band
-FROM cpg_supply_chain.fact_sales_demand fsd
-JOIN cpg_supply_chain.dim_date          dd    ON fsd.date_id        = dd.date_id
-JOIN cpg_supply_chain.dim_product       dp    ON fsd.product_id     = dp.product_id
-JOIN cpg_supply_chain.dim_customer      dc    ON fsd.customer_id    = dc.customer_id
-JOIN cpg_supply_chain.dim_destination   ddest ON fsd.destination_id = ddest.destination_id;
+FROM nike_databricks.cpg_supply_chain.fact_sales_demand fsd
+JOIN nike_databricks.cpg_supply_chain.dim_date          dd    ON fsd.date_id        = dd.date_id
+JOIN nike_databricks.cpg_supply_chain.dim_product       dp    ON fsd.product_id     = dp.product_id
+JOIN nike_databricks.cpg_supply_chain.dim_customer      dc    ON fsd.customer_id    = dc.customer_id
+JOIN nike_databricks.cpg_supply_chain.dim_destination   ddest ON fsd.destination_id = ddest.destination_id;
 
 
 -- =============================================================================
 -- SUPPLY CHAIN SCORECARD VIEW (Cross-Domain Aggregation)
 -- Monthly summary of key supply chain KPIs by product category and region.
 -- =============================================================================
-CREATE OR REPLACE VIEW cpg_supply_chain.v_monthly_sc_scorecard AS
+CREATE OR REPLACE VIEW nike_databricks.cpg_supply_chain.v_monthly_sc_scorecard AS
 WITH demand AS (
   SELECT
     dd.year, dd.month, dp.category, ddest.region AS demand_region,
@@ -257,10 +257,10 @@ WITH demand AS (
     SUM(fsd.units_fulfilled)     AS total_units_fulfilled,
     SUM(fsd.revenue)             AS total_revenue,
     AVG(fsd.fulfillment_rate_pct) AS avg_fulfillment_rate
-  FROM cpg_supply_chain.fact_sales_demand fsd
-  JOIN cpg_supply_chain.dim_date        dd    ON fsd.date_id        = dd.date_id
-  JOIN cpg_supply_chain.dim_product     dp    ON fsd.product_id     = dp.product_id
-  JOIN cpg_supply_chain.dim_destination ddest ON fsd.destination_id = ddest.destination_id
+  FROM nike_databricks.cpg_supply_chain.fact_sales_demand fsd
+  JOIN nike_databricks.cpg_supply_chain.dim_date        dd    ON fsd.date_id        = dd.date_id
+  JOIN nike_databricks.cpg_supply_chain.dim_product     dp    ON fsd.product_id     = dp.product_id
+  JOIN nike_databricks.cpg_supply_chain.dim_destination ddest ON fsd.destination_id = ddest.destination_id
   GROUP BY 1,2,3,4
 ),
 procurement AS (
@@ -269,10 +269,10 @@ procurement AS (
     SUM(fp.total_cost)                AS total_procurement_cost,
     AVG(fp.lead_time_days)            AS avg_lead_time,
     AVG(fp.delivery_variance_pct)     AS avg_delivery_variance
-  FROM cpg_supply_chain.fact_procurement fp
-  JOIN cpg_supply_chain.dim_date    dd ON fp.date_id    = dd.date_id
-  JOIN cpg_supply_chain.dim_product dp ON fp.product_id = dp.product_id
-  JOIN cpg_supply_chain.dim_vendor  dv ON fp.vendor_id  = dv.vendor_id
+  FROM nike_databricks.cpg_supply_chain.fact_procurement fp
+  JOIN nike_databricks.cpg_supply_chain.dim_date    dd ON fp.date_id    = dd.date_id
+  JOIN nike_databricks.cpg_supply_chain.dim_product dp ON fp.product_id = dp.product_id
+  JOIN nike_databricks.cpg_supply_chain.dim_vendor  dv ON fp.vendor_id  = dv.vendor_id
   GROUP BY 1,2,3,4
 ),
 manufacturing AS (
@@ -281,9 +281,9 @@ manufacturing AS (
     AVG(fm.machine_utilization_pct) AS avg_machine_util,
     AVG(fm.defect_rate_pct)         AS avg_defect_rate,
     SUM(fm.downtime_hours)          AS total_downtime_hours
-  FROM cpg_supply_chain.fact_manufacturing fm
-  JOIN cpg_supply_chain.dim_date    dd ON fm.date_id    = dd.date_id
-  JOIN cpg_supply_chain.dim_product dp ON fm.product_id = dp.product_id
+  FROM nike_databricks.cpg_supply_chain.fact_manufacturing fm
+  JOIN nike_databricks.cpg_supply_chain.dim_date    dd ON fm.date_id    = dd.date_id
+  JOIN nike_databricks.cpg_supply_chain.dim_product dp ON fm.product_id = dp.product_id
   GROUP BY 1,2,3
 )
 SELECT

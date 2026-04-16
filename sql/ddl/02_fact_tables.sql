@@ -2,7 +2,7 @@
 -- CPG Supply Chain Data Model
 -- DDL: Fact Tables (Databricks Delta Lake)
 -- Compatible: Databricks Runtime 12.x+, Delta Lake 2.x+
--- Schema: cpg_supply_chain
+-- Schema: nike_databricks.cpg_supply_chain
 -- =============================================================================
 -- Partitioning strategy:
 --   All fact tables are partitioned by year/month-derived columns for
@@ -14,7 +14,7 @@
 -- Vendor purchase orders: ordered vs delivered quantities, costs, lead times.
 -- Grain: One row per purchase order line item.
 -- =============================================================================
-CREATE TABLE IF NOT EXISTS cpg_supply_chain.fact_procurement (
+CREATE TABLE IF NOT EXISTS nike_databricks.cpg_supply_chain.fact_procurement (
   procurement_id         STRING    NOT NULL  COMMENT 'Unique identifier for each procurement transaction record (UUID primary key)',
   vendor_id              STRING    NOT NULL  COMMENT 'Foreign key linking to dim_vendor - identifies the supplier from whom the goods were ordered',
   product_id             STRING    NOT NULL  COMMENT 'Foreign key linking to dim_product - identifies the product that was procured',
@@ -38,25 +38,25 @@ TBLPROPERTIES (
   'domain'                           = 'procurement'
 );
 
-ALTER TABLE cpg_supply_chain.fact_procurement
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_procurement
   ADD CONSTRAINT pk_fact_procurement CHECK (procurement_id IS NOT NULL);
 
-ALTER TABLE cpg_supply_chain.fact_procurement
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_procurement
   ADD CONSTRAINT ck_fp_quantity_ordered CHECK (quantity_ordered >= 0);
 
-ALTER TABLE cpg_supply_chain.fact_procurement
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_procurement
   ADD CONSTRAINT ck_fp_quantity_delivered CHECK (quantity_delivered >= 0);
 
-ALTER TABLE cpg_supply_chain.fact_procurement
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_procurement
   ADD CONSTRAINT ck_fp_unit_cost CHECK (unit_cost >= 0);
 
-ALTER TABLE cpg_supply_chain.fact_procurement
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_procurement
   ADD CONSTRAINT ck_fp_total_cost CHECK (total_cost >= 0);
 
-ALTER TABLE cpg_supply_chain.fact_procurement
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_procurement
   ADD CONSTRAINT ck_fp_lead_time CHECK (lead_time_days >= 0);
 
-ALTER TABLE cpg_supply_chain.fact_procurement
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_procurement
   ADD CONSTRAINT ck_fp_status CHECK (
     status IN ('Received', 'In Transit', 'Pending', 'Partially Received', 'Cancelled')
   );
@@ -67,7 +67,7 @@ ALTER TABLE cpg_supply_chain.fact_procurement
 -- Plant-level production runs: planned vs actual output and quality KPIs.
 -- Grain: One row per plant × product × shift × date production run.
 -- =============================================================================
-CREATE TABLE IF NOT EXISTS cpg_supply_chain.fact_manufacturing (
+CREATE TABLE IF NOT EXISTS nike_databricks.cpg_supply_chain.fact_manufacturing (
   manufacturing_id         STRING    NOT NULL  COMMENT 'Unique identifier for each manufacturing production run record (UUID primary key)',
   plant_id                 STRING    NOT NULL  COMMENT 'Foreign key linking to dim_plant - identifies the plant where production took place',
   product_id               STRING    NOT NULL  COMMENT 'Foreign key linking to dim_product - identifies the product that was manufactured',
@@ -90,25 +90,25 @@ TBLPROPERTIES (
   'domain'                           = 'manufacturing'
 );
 
-ALTER TABLE cpg_supply_chain.fact_manufacturing
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_manufacturing
   ADD CONSTRAINT pk_fact_manufacturing CHECK (manufacturing_id IS NOT NULL);
 
-ALTER TABLE cpg_supply_chain.fact_manufacturing
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_manufacturing
   ADD CONSTRAINT ck_fm_units_planned CHECK (units_planned >= 0);
 
-ALTER TABLE cpg_supply_chain.fact_manufacturing
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_manufacturing
   ADD CONSTRAINT ck_fm_units_produced CHECK (units_produced >= 0);
 
-ALTER TABLE cpg_supply_chain.fact_manufacturing
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_manufacturing
   ADD CONSTRAINT ck_fm_defect_rate CHECK (defect_rate_pct BETWEEN 0 AND 100);
 
-ALTER TABLE cpg_supply_chain.fact_manufacturing
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_manufacturing
   ADD CONSTRAINT ck_fm_machine_util CHECK (machine_utilization_pct BETWEEN 0 AND 100);
 
-ALTER TABLE cpg_supply_chain.fact_manufacturing
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_manufacturing
   ADD CONSTRAINT ck_fm_downtime CHECK (downtime_hours >= 0);
 
-ALTER TABLE cpg_supply_chain.fact_manufacturing
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_manufacturing
   ADD CONSTRAINT ck_fm_throughput CHECK (throughput_rate >= 0);
 
 
@@ -117,7 +117,7 @@ ALTER TABLE cpg_supply_chain.fact_manufacturing
 -- Daily warehouse inventory snapshots with stock health flags.
 -- Grain: One row per warehouse × product × date snapshot.
 -- =============================================================================
-CREATE TABLE IF NOT EXISTS cpg_supply_chain.fact_inventory (
+CREATE TABLE IF NOT EXISTS nike_databricks.cpg_supply_chain.fact_inventory (
   inventory_id   STRING    NOT NULL  COMMENT 'Unique identifier for each inventory snapshot record (UUID primary key)',
   warehouse_id   STRING    NOT NULL  COMMENT 'Foreign key linking to dim_warehouse - identifies the warehouse where inventory is held',
   product_id     STRING    NOT NULL  COMMENT 'Foreign key linking to dim_product - identifies the product being tracked',
@@ -138,26 +138,26 @@ TBLPROPERTIES (
   'domain'                           = 'inventory'
 );
 
-ALTER TABLE cpg_supply_chain.fact_inventory
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_inventory
   ADD CONSTRAINT pk_fact_inventory CHECK (inventory_id IS NOT NULL);
 
-ALTER TABLE cpg_supply_chain.fact_inventory
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_inventory
   ADD CONSTRAINT ck_fi_stock_on_hand CHECK (stock_on_hand >= 0);
 
-ALTER TABLE cpg_supply_chain.fact_inventory
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_inventory
   ADD CONSTRAINT ck_fi_reorder_point CHECK (reorder_point >= 0);
 
-ALTER TABLE cpg_supply_chain.fact_inventory
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_inventory
   ADD CONSTRAINT ck_fi_safety_stock CHECK (safety_stock >= 0);
 
-ALTER TABLE cpg_supply_chain.fact_inventory
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_inventory
   ADD CONSTRAINT ck_fi_stockout_flag CHECK (stockout_flag IN (0, 1));
 
-ALTER TABLE cpg_supply_chain.fact_inventory
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_inventory
   ADD CONSTRAINT ck_fi_overstock_flag CHECK (overstock_flag IN (0, 1));
 
 -- Business rule: stockout and overstock cannot both be 1
-ALTER TABLE cpg_supply_chain.fact_inventory
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_inventory
   ADD CONSTRAINT ck_fi_flag_mutex CHECK (
     NOT (stockout_flag = 1 AND overstock_flag = 1)
   );
@@ -168,7 +168,7 @@ ALTER TABLE cpg_supply_chain.fact_inventory
 -- Outbound shipment records: transit performance, quantities, freight cost.
 -- Grain: One row per shipment (carrier × origin × destination × product × date).
 -- =============================================================================
-CREATE TABLE IF NOT EXISTS cpg_supply_chain.fact_shipment (
+CREATE TABLE IF NOT EXISTS nike_databricks.cpg_supply_chain.fact_shipment (
   shipment_id              STRING    NOT NULL  COMMENT 'Unique identifier for each shipment record (UUID primary key)',
   carrier_id               STRING    NOT NULL  COMMENT 'Foreign key linking to dim_carrier - identifies the logistics provider handling the shipment',
   product_id               STRING    NOT NULL  COMMENT 'Foreign key linking to dim_product - identifies the product being shipped',
@@ -193,25 +193,25 @@ TBLPROPERTIES (
   'domain'                           = 'logistics'
 );
 
-ALTER TABLE cpg_supply_chain.fact_shipment
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_shipment
   ADD CONSTRAINT pk_fact_shipment CHECK (shipment_id IS NOT NULL);
 
-ALTER TABLE cpg_supply_chain.fact_shipment
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_shipment
   ADD CONSTRAINT ck_fs_qty_shipped CHECK (quantity_shipped >= 0);
 
-ALTER TABLE cpg_supply_chain.fact_shipment
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_shipment
   ADD CONSTRAINT ck_fs_qty_received CHECK (quantity_received >= 0);
 
-ALTER TABLE cpg_supply_chain.fact_shipment
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_shipment
   ADD CONSTRAINT ck_fs_transit_actual CHECK (transit_days_actual >= 0);
 
-ALTER TABLE cpg_supply_chain.fact_shipment
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_shipment
   ADD CONSTRAINT ck_fs_transit_expected CHECK (transit_days_expected >= 0);
 
-ALTER TABLE cpg_supply_chain.fact_shipment
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_shipment
   ADD CONSTRAINT ck_fs_freight_cost CHECK (freight_cost >= 0);
 
-ALTER TABLE cpg_supply_chain.fact_shipment
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_shipment
   ADD CONSTRAINT ck_fs_status CHECK (
     shipment_status IN ('Delivered', 'In Transit', 'Delayed',
                         'Returned', 'Lost', 'Cancelled')
@@ -223,7 +223,7 @@ ALTER TABLE cpg_supply_chain.fact_shipment
 -- Customer demand and order fulfillment with revenue.
 -- Grain: One row per customer × product × destination × date demand signal.
 -- =============================================================================
-CREATE TABLE IF NOT EXISTS cpg_supply_chain.fact_sales_demand (
+CREATE TABLE IF NOT EXISTS nike_databricks.cpg_supply_chain.fact_sales_demand (
   demand_id             STRING    NOT NULL  COMMENT 'Unique identifier for each sales demand record (UUID primary key)',
   product_id            STRING    NOT NULL  COMMENT 'Foreign key linking to dim_product - identifies the product for which demand was recorded',
   customer_id           STRING    NOT NULL  COMMENT 'Foreign key linking to dim_customer - identifies the customer who placed the demand or order',
@@ -244,17 +244,17 @@ TBLPROPERTIES (
   'domain'                           = 'commercial'
 );
 
-ALTER TABLE cpg_supply_chain.fact_sales_demand
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_sales_demand
   ADD CONSTRAINT pk_fact_sales_demand CHECK (demand_id IS NOT NULL);
 
-ALTER TABLE cpg_supply_chain.fact_sales_demand
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_sales_demand
   ADD CONSTRAINT ck_fsd_units_demanded CHECK (units_demanded >= 0);
 
-ALTER TABLE cpg_supply_chain.fact_sales_demand
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_sales_demand
   ADD CONSTRAINT ck_fsd_units_fulfilled CHECK (units_fulfilled >= 0);
 
-ALTER TABLE cpg_supply_chain.fact_sales_demand
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_sales_demand
   ADD CONSTRAINT ck_fsd_fulfillment_rate CHECK (fulfillment_rate_pct BETWEEN 0 AND 100);
 
-ALTER TABLE cpg_supply_chain.fact_sales_demand
+ALTER TABLE nike_databricks.cpg_supply_chain.fact_sales_demand
   ADD CONSTRAINT ck_fsd_revenue CHECK (revenue >= 0);

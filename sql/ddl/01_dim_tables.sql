@@ -2,7 +2,7 @@
 -- CPG Supply Chain Data Model
 -- DDL: Dimension Tables (Databricks Delta Lake)
 -- Compatible: Databricks Runtime 12.x+, Delta Lake 2.x+
--- Schema: cpg_supply_chain
+-- Schema: nike_databricks.cpg_supply_chain
 -- =============================================================================
 -- Notes:
 --   * Delta Lake does not enforce UNIQUE or FK constraints at the storage layer.
@@ -13,14 +13,14 @@
 --   * TBLPROPERTIES includes Delta-specific optimisations.
 -- =============================================================================
 
-CREATE SCHEMA IF NOT EXISTS cpg_supply_chain
+CREATE SCHEMA IF NOT EXISTS nike_databricks.cpg_supply_chain
   COMMENT 'CPG Supply Chain dimensional model – Kimberly-Clark style ontology';
 
 -- =============================================================================
 -- DIM_DATE
 -- Calendar date spine used as FK by all fact tables.
 -- =============================================================================
-CREATE TABLE IF NOT EXISTS cpg_supply_chain.dim_date (
+CREATE TABLE IF NOT EXISTS nike_databricks.cpg_supply_chain.dim_date (
   date_id      STRING    NOT NULL  COMMENT 'Unique identifier for each calendar date record (UUID primary key)',
   full_date    DATE      NOT NULL  COMMENT 'The complete calendar date value (YYYY-MM-DD format)',
   year         INT       NOT NULL  COMMENT 'Calendar year extracted from the full date (e.g., 2024)',
@@ -39,20 +39,19 @@ TBLPROPERTIES (
   'delta.autoOptimize.autoCompact'   = 'true',
   'quality.layer'                    = 'gold',
   'domain'                           = 'supply_chain',
-  'owner'                            = 'data_engineering'
 );
 
 -- Constraint: date_id must be unique (enforced via MERGE in ELT)
-ALTER TABLE cpg_supply_chain.dim_date
+ALTER TABLE nike_databricks.cpg_supply_chain.dim_date
   ADD CONSTRAINT pk_dim_date CHECK (date_id IS NOT NULL);
 
-ALTER TABLE cpg_supply_chain.dim_date
+ALTER TABLE nike_databricks.cpg_supply_chain.dim_date
   ADD CONSTRAINT ck_dim_date_quarter CHECK (quarter BETWEEN 1 AND 4);
 
-ALTER TABLE cpg_supply_chain.dim_date
+ALTER TABLE nike_databricks.cpg_supply_chain.dim_date
   ADD CONSTRAINT ck_dim_date_month CHECK (month BETWEEN 1 AND 12);
 
-ALTER TABLE cpg_supply_chain.dim_date
+ALTER TABLE nike_databricks.cpg_supply_chain.dim_date
   ADD CONSTRAINT ck_dim_date_week CHECK (week BETWEEN 1 AND 53);
 
 
@@ -60,7 +59,7 @@ ALTER TABLE cpg_supply_chain.dim_date
 -- DIM_VENDOR
 -- Raw material suppliers, co-packers, and 3PL providers.
 -- =============================================================================
-CREATE TABLE IF NOT EXISTS cpg_supply_chain.dim_vendor (
+CREATE TABLE IF NOT EXISTS nike_databricks.cpg_supply_chain.dim_vendor (
   vendor_id           STRING    NOT NULL  COMMENT 'Unique identifier for each vendor record (UUID primary key)',
   vendor_name         STRING    NOT NULL  COMMENT 'Full legal or trade name of the vendor/supplier',
   vendor_type         STRING    NOT NULL  COMMENT 'Classification of the vendor (e.g., raw material, contract manufacturer, 3PL)',
@@ -81,19 +80,19 @@ TBLPROPERTIES (
   'domain'                           = 'supply_chain'
 );
 
-ALTER TABLE cpg_supply_chain.dim_vendor
+ALTER TABLE nike_databricks.cpg_supply_chain.dim_vendor
   ADD CONSTRAINT pk_dim_vendor CHECK (vendor_id IS NOT NULL);
 
-ALTER TABLE cpg_supply_chain.dim_vendor
+ALTER TABLE nike_databricks.cpg_supply_chain.dim_vendor
   ADD CONSTRAINT ck_dim_vendor_reliability CHECK (reliability_score BETWEEN 0.0 AND 1.0);
 
-ALTER TABLE cpg_supply_chain.dim_vendor
+ALTER TABLE nike_databricks.cpg_supply_chain.dim_vendor
   ADD CONSTRAINT ck_dim_vendor_lead_time CHECK (avg_lead_time_days > 0);
 
-ALTER TABLE cpg_supply_chain.dim_vendor
+ALTER TABLE nike_databricks.cpg_supply_chain.dim_vendor
   ADD CONSTRAINT ck_dim_vendor_tier CHECK (tier IN ('Tier 1', 'Tier 2', 'Tier 3'));
 
-ALTER TABLE cpg_supply_chain.dim_vendor
+ALTER TABLE nike_databricks.cpg_supply_chain.dim_vendor
   ADD CONSTRAINT ck_dim_vendor_region CHECK (
     region IN ('North America', 'EMEA', 'APAC', 'Latin America')
   );
@@ -103,7 +102,7 @@ ALTER TABLE cpg_supply_chain.dim_vendor
 -- DIM_PLANT
 -- Manufacturing and conversion plant master.
 -- =============================================================================
-CREATE TABLE IF NOT EXISTS cpg_supply_chain.dim_plant (
+CREATE TABLE IF NOT EXISTS nike_databricks.cpg_supply_chain.dim_plant (
   plant_id               STRING    NOT NULL  COMMENT 'Unique identifier for each manufacturing or distribution plant (UUID primary key)',
   plant_name             STRING    NOT NULL  COMMENT 'Full descriptive name of the plant facility',
   plant_code             STRING    NOT NULL  COMMENT 'Short alphanumeric code used to reference the plant in systems and reports',
@@ -123,13 +122,13 @@ TBLPROPERTIES (
   'domain'                           = 'supply_chain'
 );
 
-ALTER TABLE cpg_supply_chain.dim_plant
+ALTER TABLE nike_databricks.cpg_supply_chain.dim_plant
   ADD CONSTRAINT pk_dim_plant CHECK (plant_id IS NOT NULL);
 
-ALTER TABLE cpg_supply_chain.dim_plant
+ALTER TABLE nike_databricks.cpg_supply_chain.dim_plant
   ADD CONSTRAINT ck_dim_plant_capacity CHECK (capacity_units_per_day > 0);
 
-ALTER TABLE cpg_supply_chain.dim_plant
+ALTER TABLE nike_databricks.cpg_supply_chain.dim_plant
   ADD CONSTRAINT ck_dim_plant_type CHECK (
     plant_type IN ('Assembly', 'Converting', 'Packaging', 'Nonwoven Mfg', 'Distribution')
   );
@@ -139,7 +138,7 @@ ALTER TABLE cpg_supply_chain.dim_plant
 -- DIM_SHIFT
 -- Work shift definitions for manufacturing operations.
 -- =============================================================================
-CREATE TABLE IF NOT EXISTS cpg_supply_chain.dim_shift (
+CREATE TABLE IF NOT EXISTS nike_databricks.cpg_supply_chain.dim_shift (
   shift_id         STRING     NOT NULL  COMMENT 'Unique identifier for each work shift record (UUID primary key)',
   shift_name       STRING     NOT NULL  COMMENT 'Descriptive name of the shift (e.g., Morning Shift, Night Shift, Mid Shift)',
   shift_start      TIMESTAMP  NOT NULL  COMMENT 'Scheduled start timestamp of the shift (date and time)',
@@ -154,7 +153,7 @@ TBLPROPERTIES (
   'domain'                           = 'supply_chain'
 );
 
-ALTER TABLE cpg_supply_chain.dim_shift
+ALTER TABLE nike_databricks.cpg_supply_chain.dim_shift
   ADD CONSTRAINT pk_dim_shift CHECK (shift_id IS NOT NULL);
 
 
@@ -162,7 +161,7 @@ ALTER TABLE cpg_supply_chain.dim_shift
 -- DIM_WAREHOUSE
 -- Finished goods DCs, raw material stores, and cross-dock facilities.
 -- =============================================================================
-CREATE TABLE IF NOT EXISTS cpg_supply_chain.dim_warehouse (
+CREATE TABLE IF NOT EXISTS nike_databricks.cpg_supply_chain.dim_warehouse (
   warehouse_id           STRING    NOT NULL  COMMENT 'Unique identifier for each warehouse or storage facility (UUID primary key)',
   warehouse_name         STRING    NOT NULL  COMMENT 'Full descriptive name of the warehouse',
   warehouse_code         STRING    NOT NULL  COMMENT 'Short alphanumeric code used to reference the warehouse in systems and reports',
@@ -182,13 +181,13 @@ TBLPROPERTIES (
   'domain'                           = 'supply_chain'
 );
 
-ALTER TABLE cpg_supply_chain.dim_warehouse
+ALTER TABLE nike_databricks.cpg_supply_chain.dim_warehouse
   ADD CONSTRAINT pk_dim_warehouse CHECK (warehouse_id IS NOT NULL);
 
-ALTER TABLE cpg_supply_chain.dim_warehouse
+ALTER TABLE nike_databricks.cpg_supply_chain.dim_warehouse
   ADD CONSTRAINT ck_dim_warehouse_capacity CHECK (storage_capacity_units > 0);
 
-ALTER TABLE cpg_supply_chain.dim_warehouse
+ALTER TABLE nike_databricks.cpg_supply_chain.dim_warehouse
   ADD CONSTRAINT ck_dim_warehouse_type CHECK (
     type IN ('Finished Goods DC', 'Raw Materials', 'Cold Storage',
              'Cross-Dock', 'Bonded Warehouse')
@@ -199,7 +198,7 @@ ALTER TABLE cpg_supply_chain.dim_warehouse
 -- DIM_CUSTOMER
 -- Retail and B2B customer master with channel segmentation.
 -- =============================================================================
-CREATE TABLE IF NOT EXISTS cpg_supply_chain.dim_customer (
+CREATE TABLE IF NOT EXISTS nike_databricks.cpg_supply_chain.dim_customer (
   customer_id      STRING    NOT NULL  COMMENT 'Unique identifier for each customer record (UUID primary key)',
   customer_name    STRING    NOT NULL  COMMENT 'Full name of the customer or business entity',
   customer_segment STRING    NOT NULL  COMMENT 'Market segment the customer belongs to (e.g., Enterprise, SMB, Retail, Wholesale)',
@@ -218,10 +217,10 @@ TBLPROPERTIES (
   'domain'                           = 'commercial'
 );
 
-ALTER TABLE cpg_supply_chain.dim_customer
+ALTER TABLE nike_databricks.cpg_supply_chain.dim_customer
   ADD CONSTRAINT pk_dim_customer CHECK (customer_id IS NOT NULL);
 
-ALTER TABLE cpg_supply_chain.dim_customer
+ALTER TABLE nike_databricks.cpg_supply_chain.dim_customer
   ADD CONSTRAINT ck_dim_customer_channel CHECK (
     channel IN ('Direct', 'E-Commerce', 'Distributor', 'Wholesale', 'B2B Direct', 'Drop-Ship')
   );
@@ -231,7 +230,7 @@ ALTER TABLE cpg_supply_chain.dim_customer
 -- DIM_DESTINATION
 -- Delivery destination master: retail stores, customer DCs, 3PLs.
 -- =============================================================================
-CREATE TABLE IF NOT EXISTS cpg_supply_chain.dim_destination (
+CREATE TABLE IF NOT EXISTS nike_databricks.cpg_supply_chain.dim_destination (
   destination_id   STRING    NOT NULL  COMMENT 'Unique identifier for each shipment or delivery destination (UUID primary key)',
   destination_name STRING    NOT NULL  COMMENT 'Full name of the destination location (e.g., store name, customer site, distribution hub)',
   destination_type STRING    NOT NULL  COMMENT 'Type of destination (e.g., Retail Store, Customer DC, 3PL Facility, End Customer)',
@@ -250,13 +249,13 @@ TBLPROPERTIES (
   'domain'                           = 'supply_chain'
 );
 
-ALTER TABLE cpg_supply_chain.dim_destination
+ALTER TABLE nike_databricks.cpg_supply_chain.dim_destination
   ADD CONSTRAINT pk_dim_destination CHECK (destination_id IS NOT NULL);
 
-ALTER TABLE cpg_supply_chain.dim_destination
+ALTER TABLE nike_databricks.cpg_supply_chain.dim_destination
   ADD CONSTRAINT ck_dim_destination_lat CHECK (lat IS NULL OR lat BETWEEN -90 AND 90);
 
-ALTER TABLE cpg_supply_chain.dim_destination
+ALTER TABLE nike_databricks.cpg_supply_chain.dim_destination
   ADD CONSTRAINT ck_dim_destination_lon CHECK (lon IS NULL OR lon BETWEEN -180 AND 180);
 
 
@@ -264,7 +263,7 @@ ALTER TABLE cpg_supply_chain.dim_destination
 -- DIM_CARRIER
 -- Logistics carrier master: road, ocean, air, rail providers.
 -- =============================================================================
-CREATE TABLE IF NOT EXISTS cpg_supply_chain.dim_carrier (
+CREATE TABLE IF NOT EXISTS nike_databricks.cpg_supply_chain.dim_carrier (
   carrier_id            STRING    NOT NULL  COMMENT 'Unique identifier for each logistics carrier or freight provider (UUID primary key)',
   carrier_name          STRING    NOT NULL  COMMENT 'Full legal or trade name of the carrier',
   carrier_type          STRING    NOT NULL  COMMENT 'Mode or type of carrier (e.g., Air, Ocean, Road, Rail, Courier)',
@@ -282,16 +281,16 @@ TBLPROPERTIES (
   'domain'                           = 'logistics'
 );
 
-ALTER TABLE cpg_supply_chain.dim_carrier
+ALTER TABLE nike_databricks.cpg_supply_chain.dim_carrier
   ADD CONSTRAINT pk_dim_carrier CHECK (carrier_id IS NOT NULL);
 
-ALTER TABLE cpg_supply_chain.dim_carrier
+ALTER TABLE nike_databricks.cpg_supply_chain.dim_carrier
   ADD CONSTRAINT ck_dim_carrier_otd CHECK (on_time_delivery_pct BETWEEN 0 AND 100);
 
-ALTER TABLE cpg_supply_chain.dim_carrier
+ALTER TABLE nike_databricks.cpg_supply_chain.dim_carrier
   ADD CONSTRAINT ck_dim_carrier_transit CHECK (avg_transit_days > 0);
 
-ALTER TABLE cpg_supply_chain.dim_carrier
+ALTER TABLE nike_databricks.cpg_supply_chain.dim_carrier
   ADD CONSTRAINT ck_dim_carrier_type CHECK (
     carrier_type IN ('Air', 'Ocean', 'Road', 'Rail', 'Courier')
   );
@@ -301,7 +300,7 @@ ALTER TABLE cpg_supply_chain.dim_carrier
 -- DIM_PRODUCT
 -- Product/SKU master for all CPG items across categories and brands.
 -- =============================================================================
-CREATE TABLE IF NOT EXISTS cpg_supply_chain.dim_product (
+CREATE TABLE IF NOT EXISTS nike_databricks.cpg_supply_chain.dim_product (
   product_id      STRING    NOT NULL  COMMENT 'Unique identifier for each product/SKU record (UUID primary key)',
   sku             STRING    NOT NULL  COMMENT 'Stock Keeping Unit - unique alphanumeric code used to identify and track the product in inventory',
   product_name    STRING    NOT NULL  COMMENT 'Full descriptive name of the product',
@@ -322,13 +321,13 @@ TBLPROPERTIES (
   'domain'                           = 'commercial'
 );
 
-ALTER TABLE cpg_supply_chain.dim_product
+ALTER TABLE nike_databricks.cpg_supply_chain.dim_product
   ADD CONSTRAINT pk_dim_product CHECK (product_id IS NOT NULL);
 
-ALTER TABLE cpg_supply_chain.dim_product
+ALTER TABLE nike_databricks.cpg_supply_chain.dim_product
   ADD CONSTRAINT ck_dim_product_weight CHECK (unit_weight_kg > 0);
 
-ALTER TABLE cpg_supply_chain.dim_product
+ALTER TABLE nike_databricks.cpg_supply_chain.dim_product
   ADD CONSTRAINT ck_dim_product_category CHECK (
     category IN (
       'Baby & Child Care', 'Personal Care', 'Family Care',
