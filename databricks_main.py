@@ -3,7 +3,6 @@
 CPG Supply Chain Data Generator – Databricks Notebook Entry Point
 
 This file is designed to run inside Databricks as a notebook (each
-# COMMAND ---------- block is a separate cell) or as a Python script
 submitted to a Databricks Job.
 
 Quick start
@@ -27,13 +26,15 @@ Alternatively, submit as a Databricks Job:
 """
 
 # COMMAND ----------
+
 # Cell 1 – Install Python dependencies
 # Run this cell once, then restart the Python process / kernel.
 # PySpark is provided by the Databricks runtime and must NOT be listed here.
 
-# %pip install pyyaml>=6.0.1 numpy>=1.26.0 pandas>=2.1.0 pyarrow>=14.0.0 tqdm>=4.66.0
+%pip install pyyaml>=6.0.1 numpy>=1.26.0 pandas>=2.1.0 pyarrow>=14.0.0 tqdm>=4.66.0
 
 # COMMAND ----------
+
 # Cell 2 – Bootstrap: add project root to sys.path
 
 import sys
@@ -53,6 +54,7 @@ if _project_root not in sys.path:
 print(f"Project root: {_project_root}")
 
 # COMMAND ----------
+
 # Cell 3 – Parameters via Databricks widgets
 #
 # Widgets appear as dropdowns / text boxes at the top of the notebook.
@@ -118,6 +120,7 @@ print(f"  Validate     : {VALIDATE}")
 print("=" * 50)
 
 # COMMAND ----------
+
 # Cell 4 – Run the pipeline
 
 from src.pipeline import CPGDataPipeline, _get_row_counts
@@ -141,6 +144,7 @@ pipeline.row_counts = _get_row_counts(pipeline.config)
 results = pipeline.run(write=True, validate=VALIDATE)
 
 # COMMAND ----------
+
 # Cell 5 – Print summary
 
 print("\nGenerated Tables:")
@@ -153,6 +157,7 @@ print(f"\n  {'TOTAL':<30} {total:>10,}")
 print(f"\nAll tables written to: {db_writer.output_location}")
 
 # COMMAND ----------
+
 # Cell 6 – (Optional) Quick sanity-check query
 #
 # Uncomment and run after the pipeline completes to verify the data.
