@@ -1,0 +1,145 @@
+# =============================================================================
+# CPG Data Generator - Relationship & Referential Integrity Configuration
+# Defines FK cardinality, sampling strategy, and cross-table business rules
+# =============================================================================
+
+# ── Generation Order (respects FK dependencies) ───────────────────────────
+generation_order:
+  - dim_date
+  - dim_vendor
+  - dim_plant
+  - dim_shift
+  - dim_warehouse
+  - dim_carrier
+  - dim_product
+  - dim_customer
+  - dim_destination
+  - fact_procurement
+  - fact_manufacturing
+  - fact_inventory
+  - fact_shipment
+  - fact_sales_demand
+
+# ── FK Sampling Strategy ──────────────────────────────────────────────────
+# strategy:
+#   uniform   - equal probability across all FK values
+#   weighted  - uses weights array or a weight column from the dim
+#   pareto    - 80/20 rule (top 20% of keys get 80% of facts)
+#   correlated - FK selections are correlated with each other
+
+foreign_key_strategies:
+
+  fact_procurement:
+    vendor_id:
+      strategy: pareto       # Concentration: top vendors dominate orders
+      pareto_factor: 0.20
+    product_id:
+      strategy: pareto
+      pareto_factor: 0.30    # Top 30% of products drive 70% of PO volume
+    date_id:
+      strategy: uniform
+    warehouse_id:
+      strategy: uniform
+
+  fact_manufacturing:
+    plant_id:
+      strategy: pareto
+      pareto_factor: 0.25    # Larger plants run more production runs
+    product_id:
+      strategy: pareto
+      pareto_factor: 0.25
+    date_id:
+      strategy: uniform
+    shift_id:
+      strategy: uniform      # Evenly distributed across 3 shifts
+
+  fact_inventory:
+    warehouse_id:
+      strategy: uniform
+    product_id:
+      strategy: uniform      # All SKUs tracked in inventory
+    date_id:
+      strategy: uniform
+
+  fact_shipment:
+    carrier_id:
+      strategy: pareto
+      pareto_factor: 0.25    # Preferred carrier consolidation
+    product_id:
+      strategy: pareto
+      pareto_factor: 0.30
+    date_id:
+      strategy: uniform
+    origin_warehouse_id:
+      strategy: pareto
+      pareto_factor: 0.30    # Certain DCs ship more
+    destination_id:
+      strategy: pareto
+      pareto_factor: 0.20    # Top destinations receive most shipments
+
+  fact_sales_demand:
+    product_id:
+      strategy: pareto
+      pareto_factor: 0.20    # Power SKUs: 20% drive 80% of demand
+    customer_id:
+      strategy: pareto
+      pareto_factor: 0.20    # Key account concentration
+    date_id:
+      strategy: uniform
+    destination_id:
+      strategy: pareto
+      pareto_factor: 0.25
+
+# ── Business Rules for Derived / Computed Fields ─────────────────────────
+business_rules:
+
+  fact_procurement:
+    # quantity_delivered is derived from quantity_ordered × fill_rate
+    # total_cost = quantity_delivered × unit_cost
+    # delivery_variance_pct = (quantity_delivered - quantity_ordered) / quantity_ordered * 100
+    # lead_time_days is drawn from vendor's avg_lead_time_days ± 20%
+    derived_fields:
+      quantity_delivered: "quantity_ordered * fill_rate_sample"
+      delivery_variance_pct: "(quantity_delivered - quantity_ordered) / quantity_ordered * 100"
+      total_cost: "quantity_delivered * unit_cost"
+      lead_time_days: "round(vendor_avg_lead_time * lead_time_factor)"
+
+  fact_manufacturing:
+    # units_produced = units_planned * attainment_rate
+    # throughput_rate = units_produced / 8 (hours per shift)
+    derived_fields:
+      units_produced: "units_planned * attainment_rate"
+      throughput_rate: "units_produced / 8.0"
+
+  fact_inventory:
+    # reorder_point is based on avg daily demand × lead time
+    # stockout_flag = 1 if stock_on_hand <= safety_stock else 0
+    # overstock_flag = 1 if stock_on_hand >= 3 * reorder_point else 0
+    derived_fields:
+      stockout_flag: "1 if stock_on_hand <= safety_stock else 0"
+      overstock_flag: "1 if stock_on_hand >= reorder_point * 3.0 else 0"
+
+  fact_shipment:
+    # quantity_received = quantity_shipped * fill_rate
+    # delivery_variance_days = transit_days_actual - transit_days_expected
+    derived_fields:
+      quantity_received: "quantity_shipped * fill_rate_sample"
+      delivery_variance_days: "transit_days_actual - transit_days_expected"
+      freight_cost: "quantity_shipped * freight_cost_per_unit"
+
+  fact_sales_demand:
+    # units_fulfilled = units_demanded * fulfillment_rate / 100
+    # fulfillment_rate_pct = units_fulfilled / units_demanded * 100
+    # revenue = units_fulfilled * revenue_per_unit
+    derived_fields:
+      units_fulfilled: "units_demanded * (fulfillment_rate_pct / 100.0)"
+      revenue: "units_fulfilled * revenue_per_unit"
+
+# ── Active Record Filtering ───────────────────────────────────────────────
+# Fact records should only reference active dimension records
+active_only_fks:
+  fact_procurement:    [vendor_id, product_id, warehouse_id]
+  fact_manufacturing:  [plant_id, product_id]
+  fact_inventory:      [warehouse_id, product_id]
+  fact_shipment:       [carrier_id, product_id, origin_warehouse_id]
+  fact_sales_demand:   [product_id, customer_id]

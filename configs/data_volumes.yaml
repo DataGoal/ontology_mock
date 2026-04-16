@@ -1,0 +1,88 @@
+# =============================================================================
+# CPG Data Generator - Data Volume Configuration
+# Controls how many rows are generated for each table.
+# Profiles: dev (fast), staging (medium), prod (full-scale)
+# =============================================================================
+
+active_profile: dev
+
+profiles:
+
+  dev:
+    description: "Lightweight dataset for local development and unit tests"
+    date_range:
+      start: "2023-01-01"
+      end:   "2023-12-31"
+    dimensions:
+      dim_vendor:      30
+      dim_plant:       10
+      dim_warehouse:   15
+      dim_customer:    50
+      dim_destination: 60
+      dim_carrier:     12
+      dim_product:     80
+      dim_shift:       3     # Fixed: Morning, Afternoon, Night
+      dim_date:        null  # Auto-derived from date_range
+    facts:
+      fact_procurement:   500
+      fact_manufacturing: 800
+      fact_inventory:     1200
+      fact_shipment:      700
+      fact_sales_demand:  1000
+
+  staging:
+    description: "Mid-scale dataset for integration testing and QA"
+    date_range:
+      start: "2022-01-01"
+      end:   "2023-12-31"
+    dimensions:
+      dim_vendor:      75
+      dim_plant:       20
+      dim_warehouse:   35
+      dim_customer:    200
+      dim_destination: 250
+      dim_carrier:     25
+      dim_product:     300
+      dim_shift:       3
+      dim_date:        null
+    facts:
+      fact_procurement:   5000
+      fact_manufacturing: 8000
+      fact_inventory:     15000
+      fact_shipment:      7000
+      fact_sales_demand:  12000
+
+  prod:
+    description: "Production-scale dataset mimicking a mid-size CPG company (KC-style)"
+    date_range:
+      start: "2020-01-01"
+      end:   "2024-12-31"
+    dimensions:
+      dim_vendor:      150
+      dim_plant:       40
+      dim_warehouse:   80
+      dim_customer:    1000
+      dim_destination: 1200
+      dim_carrier:     60
+      dim_product:     800
+      dim_shift:       3
+      dim_date:        null
+    facts:
+      fact_procurement:   100000
+      fact_manufacturing: 200000
+      fact_inventory:     500000
+      fact_shipment:      150000
+      fact_sales_demand:  400000
+
+# Output configuration
+output:
+  format: csv           # Options: csv, parquet, json
+  output_dir: ./output
+  compress: false        # Set true for parquet gzip compression
+  include_header: true
+  encoding: utf-8
+  decimal_places: 4
+  null_representation: ""
+
+# Seed for reproducibility
+random_seed: 42

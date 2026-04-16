@@ -1,0 +1,188 @@
+# =============================================================================
+# CPG Data Generator - Statistical Distribution Configuration
+# Defines how each numeric/categorical field is distributed.
+# Supports: normal, uniform, lognormal, beta, choice (weighted)
+# =============================================================================
+
+# ── Dimension Distributions ────────────────────────────────────────────────
+
+dim_vendor:
+  reliability_score:
+    distribution: beta
+    alpha: 8.0
+    beta: 2.0         # Right-skewed: most vendors score 0.75–0.95
+  avg_lead_time_days:
+    distribution: lognormal
+    mean: 3.2         # exp(3.2) ~ 24.5 days
+    sigma: 0.5
+  tier_weights:
+    "Tier 1": 0.25
+    "Tier 2": 0.45
+    "Tier 3": 0.30
+  active_ratio: 0.88   # 88% of vendors are active
+
+dim_plant:
+  capacity_units_per_day:
+    distribution: lognormal
+    mean: 11.5        # exp(11.5) ~ 98,716 units/day
+    sigma: 0.7
+  active_ratio: 0.90
+
+dim_warehouse:
+  storage_capacity_units:
+    distribution: lognormal
+    mean: 13.0        # exp(13) ~ 442,413 units
+    sigma: 0.8
+  active_ratio: 0.92
+
+dim_carrier:
+  avg_transit_days:
+    distribution: lognormal
+    mean: 2.1         # exp(2.1) ~ 8.2 days
+    sigma: 0.6
+  on_time_delivery_pct:
+    distribution: beta
+    alpha: 9.0
+    beta: 1.5         # Most carriers ~85–98%
+    scale: 100.0
+  active_ratio: 0.85
+
+dim_product:
+  unit_weight_kg:
+    distribution: lognormal
+    mean: 0.5
+    sigma: 0.9        # Wide range: light wipes to bulk diapers
+  active_ratio: 0.82
+
+# ── Fact Distributions ─────────────────────────────────────────────────────
+
+fact_procurement:
+  quantity_ordered:
+    distribution: lognormal
+    mean: 10.0        # exp(10) ~ 22,026 units per order
+    sigma: 1.2
+  fill_rate:           # quantity_delivered / quantity_ordered
+    distribution: beta
+    alpha: 10.0
+    beta: 1.0         # Most deliveries ~92–100%
+    scale: 1.0
+  unit_cost:
+    distribution: lognormal
+    mean: 1.5
+    sigma: 1.0        # Wide cost range across raw mats and finished goods
+  lead_time_actual_vs_avg_factor:
+    distribution: normal
+    mean: 1.05
+    std: 0.15         # Actual lead time = vendor_avg * this factor
+  status_weights:
+    "Received":    0.65
+    "In Transit":  0.18
+    "Pending":     0.10
+    "Cancelled":   0.05
+    "Partially Received": 0.02
+
+fact_manufacturing:
+  attainment_rate:    # units_produced / units_planned
+    distribution: beta
+    alpha: 9.0
+    beta: 1.5
+    scale: 1.0        # Typical OEE target 85–95%
+  defect_rate_pct:
+    distribution: beta
+    alpha: 1.5
+    beta: 30.0        # Most runs 0.5–3% defects
+    scale: 10.0
+  machine_utilization_pct:
+    distribution: beta
+    alpha: 7.0
+    beta: 2.5
+    scale: 100.0      # Typical utilization 70–90%
+  downtime_hours:
+    distribution: lognormal
+    mean: 0.3
+    sigma: 0.8        # Most runs 0–2 hrs downtime
+  throughput_rate:
+    distribution: normal
+    mean: 1200.0
+    std: 300.0        # Units per hour
+
+fact_inventory:
+  days_of_supply_factor:     # stock_on_hand / safety_stock
+    distribution: lognormal
+    mean: 1.5
+    sigma: 0.6
+  safety_stock_factor:       # safety_stock relative to reorder_point
+    distribution: beta
+    alpha: 3.0
+    beta: 5.0
+    scale: 1.0
+  stockout_probability: 0.04  # 4% of snapshots hit stockout
+  overstock_probability: 0.08 # 8% of snapshots are overstocked
+
+fact_shipment:
+  fill_rate:          # quantity_received / quantity_shipped
+    distribution: beta
+    alpha: 12.0
+    beta: 1.0
+    scale: 1.0
+  transit_variance:   # actual - expected days
+    distribution: normal
+    mean: 0.8
+    std: 2.5          # Slight positive bias (late more often than early)
+  freight_cost_per_unit:
+    distribution: lognormal
+    mean: 0.5
+    sigma: 0.7
+  shipment_status_weights:
+    "Delivered":    0.70
+    "In Transit":   0.15
+    "Delayed":      0.08
+    "Returned":     0.04
+    "Lost":         0.02
+    "Cancelled":    0.01
+
+fact_sales_demand:
+  demand_units:
+    distribution: lognormal
+    mean: 9.0         # exp(9) ~ 8,103 units per order
+    sigma: 1.5
+  fulfillment_rate_pct:
+    distribution: beta
+    alpha: 11.0
+    beta: 1.2
+    scale: 100.0      # Typical OTIF 93–99%
+  revenue_per_unit:
+    distribution: lognormal
+    mean: 2.5
+    sigma: 0.8        # $2–$50 selling price range
+
+# ── Seasonality Factors (monthly multipliers on demand volumes) ────────────
+seasonality:
+  # CPG Tissue/Paper/Baby products show holiday spikes
+  fact_sales_demand:
+    "1":  0.90   # Jan: post-holiday dip
+    "2":  0.88
+    "3":  0.95
+    "4":  0.98
+    "5":  1.00
+    "6":  1.02
+    "7":  1.05
+    "8":  1.10   # Back-to-school
+    "9":  1.08
+    "10": 1.05
+    "11": 1.15   # Pre-holiday stocking
+    "12": 1.25   # Holiday peak
+
+  fact_procurement:
+    "1":  0.85
+    "2":  0.90
+    "3":  0.95
+    "4":  1.00
+    "5":  1.00
+    "6":  1.02
+    "7":  1.05
+    "8":  1.08
+    "9":  1.05
+    "10": 1.00
+    "11": 1.10
+    "12": 0.95   # Procurement slows in December

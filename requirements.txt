@@ -1,0 +1,21 @@
+# =============================================================================
+# CPG Data Generator – Python Dependencies
+# Python >= 3.10 required
+# =============================================================================
+
+# Core data manipulation
+numpy>=1.26.0
+pandas>=2.1.0
+
+# YAML configuration
+PyYAML>=6.0.1
+
+# Optional: Parquet output support
+pyarrow>=14.0.0
+
+# Optional: Progress bars for large profile runs
+tqdm>=4.66.0
+
+# Development / testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
