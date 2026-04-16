@@ -21,16 +21,16 @@ CREATE SCHEMA IF NOT EXISTS cpg_supply_chain
 -- Calendar date spine used as FK by all fact tables.
 -- =============================================================================
 CREATE TABLE IF NOT EXISTS cpg_supply_chain.dim_date (
-  date_id      STRING    NOT NULL  COMMENT 'UUID primary key for each calendar date record',
-  full_date    DATE      NOT NULL  COMMENT 'Complete calendar date (YYYY-MM-DD)',
-  year         INT       NOT NULL  COMMENT 'Calendar year (e.g. 2024)',
-  quarter      INT       NOT NULL  COMMENT 'Calendar quarter 1–4',
-  month        INT       NOT NULL  COMMENT 'Calendar month 1–12',
-  week         INT       NOT NULL  COMMENT 'ISO week number 1–53',
-  month_name   STRING    NOT NULL  COMMENT 'Full month name (e.g. January)',
-  day_of_week  STRING    NOT NULL  COMMENT 'Full day name (e.g. Monday)',
-  is_weekend   BOOLEAN   NOT NULL  COMMENT 'TRUE if Saturday or Sunday',
-  is_holiday   BOOLEAN   NOT NULL  COMMENT 'TRUE if US federal or company holiday'
+  date_id      STRING    NOT NULL  COMMENT 'Unique identifier for each calendar date record (UUID primary key)',
+  full_date    DATE      NOT NULL  COMMENT 'The complete calendar date value (YYYY-MM-DD format)',
+  year         INT       NOT NULL  COMMENT 'Calendar year extracted from the full date (e.g., 2024)',
+  quarter      INT       NOT NULL  COMMENT 'Fiscal or calendar quarter number (1-4)',
+  month        INT       NOT NULL  COMMENT 'Calendar month number (1-12)',
+  week         INT       NOT NULL  COMMENT 'ISO week number of the year (1-53)',
+  month_name   STRING    NOT NULL  COMMENT 'Full name of the month (e.g., January, February)',
+  day_of_week  STRING    NOT NULL  COMMENT 'Name of the day of the week (e.g., Monday, Tuesday)',
+  is_weekend   BOOLEAN   NOT NULL  COMMENT 'Flag indicating whether the date falls on a Saturday or Sunday (TRUE/FALSE)',
+  is_holiday   BOOLEAN   NOT NULL  COMMENT 'Flag indicating whether the date is a recognized public or company holiday (TRUE/FALSE)'
 )
 USING DELTA
 COMMENT 'Calendar date dimension – one row per calendar day'
@@ -61,15 +61,15 @@ ALTER TABLE cpg_supply_chain.dim_date
 -- Raw material suppliers, co-packers, and 3PL providers.
 -- =============================================================================
 CREATE TABLE IF NOT EXISTS cpg_supply_chain.dim_vendor (
-  vendor_id           STRING    NOT NULL  COMMENT 'UUID primary key for each vendor record',
+  vendor_id           STRING    NOT NULL  COMMENT 'Unique identifier for each vendor record (UUID primary key)',
   vendor_name         STRING    NOT NULL  COMMENT 'Full legal or trade name of the vendor/supplier',
-  vendor_type         STRING    NOT NULL  COMMENT 'Classification: Raw Material | Packaging | Chemical Supplier | Contract Manufacturer | 3PL',
-  country             STRING    NOT NULL  COMMENT 'Country where the vendor is headquartered',
-  region              STRING    NOT NULL  COMMENT 'Geographic region: North America | EMEA | APAC | Latin America',
-  tier                STRING    NOT NULL  COMMENT 'Strategic importance tier: Tier 1 | Tier 2 | Tier 3',
-  reliability_score   DOUBLE    NOT NULL  COMMENT 'Composite reliability score (0.0–1.0) based on delivery and quality history',
-  avg_lead_time_days  DOUBLE    NOT NULL  COMMENT 'Average days from PO placement to goods receipt',
-  active              BOOLEAN   NOT NULL  COMMENT 'TRUE = vendor is active and eligible for new purchase orders'
+  vendor_type         STRING    NOT NULL  COMMENT 'Classification of the vendor (e.g., raw material, contract manufacturer, 3PL)',
+  country             STRING    NOT NULL  COMMENT 'Country where the vendor is headquartered or primarily operates',
+  region              STRING    NOT NULL  COMMENT 'Geographic region of the vendor (e.g., APAC, EMEA, North America)',
+  tier                STRING    NOT NULL  COMMENT 'Vendor tier classification indicating strategic importance (e.g., Tier 1, Tier 2, Tier 3)',
+  reliability_score   DOUBLE    NOT NULL  COMMENT 'Composite reliability score (0-1 or 0-100) based on past delivery performance and quality metrics',
+  avg_lead_time_days  DOUBLE    NOT NULL  COMMENT 'Average number of days from purchase order placement to goods receipt for this vendor',
+  active              BOOLEAN   NOT NULL  COMMENT 'Indicates whether the vendor is currently active and eligible for new purchase orders (TRUE/FALSE)'
 )
 USING DELTA
 PARTITIONED BY (region)
@@ -104,14 +104,14 @@ ALTER TABLE cpg_supply_chain.dim_vendor
 -- Manufacturing and conversion plant master.
 -- =============================================================================
 CREATE TABLE IF NOT EXISTS cpg_supply_chain.dim_plant (
-  plant_id               STRING    NOT NULL  COMMENT 'UUID primary key for each plant record',
+  plant_id               STRING    NOT NULL  COMMENT 'Unique identifier for each manufacturing or distribution plant (UUID primary key)',
   plant_name             STRING    NOT NULL  COMMENT 'Full descriptive name of the plant facility',
-  plant_code             STRING    NOT NULL  COMMENT 'Short alphanumeric code used in systems and reports',
+  plant_code             STRING    NOT NULL  COMMENT 'Short alphanumeric code used to reference the plant in systems and reports',
   country                STRING    NOT NULL  COMMENT 'Country where the plant is physically located',
-  region                 STRING    NOT NULL  COMMENT 'Geographic region: North America | EMEA | APAC | Latin America',
-  capacity_units_per_day DOUBLE    NOT NULL  COMMENT 'Maximum units the plant can produce per day under normal conditions',
-  plant_type             STRING    NOT NULL  COMMENT 'Plant function: Assembly | Converting | Packaging | Nonwoven Mfg',
-  active                 BOOLEAN   NOT NULL  COMMENT 'TRUE = plant is operational and accepting production orders'
+  region                 STRING    NOT NULL  COMMENT 'Geographic region of the plant (e.g., APAC, EMEA, North America)',
+  capacity_units_per_day DOUBLE    NOT NULL  COMMENT 'Maximum number of units the plant can produce or process in a single day under normal conditions',
+  plant_type             STRING    NOT NULL  COMMENT 'Type or function of the plant (e.g., Assembly, Fabrication, Packaging, Distribution)',
+  active                 BOOLEAN   NOT NULL  COMMENT 'Indicates whether the plant is currently operational and accepting production orders (TRUE/FALSE)'
 )
 USING DELTA
 PARTITIONED BY (region)
@@ -140,11 +140,11 @@ ALTER TABLE cpg_supply_chain.dim_plant
 -- Work shift definitions for manufacturing operations.
 -- =============================================================================
 CREATE TABLE IF NOT EXISTS cpg_supply_chain.dim_shift (
-  shift_id         STRING     NOT NULL  COMMENT 'UUID primary key for each shift record',
-  shift_name       STRING     NOT NULL  COMMENT 'Descriptive name: Morning Shift | Afternoon Shift | Night Shift',
-  shift_start      TIMESTAMP  NOT NULL  COMMENT 'Scheduled start timestamp of the shift',
-  shift_end        TIMESTAMP  NOT NULL  COMMENT 'Scheduled end timestamp of the shift',
-  shift_supervisor STRING     NOT NULL  COMMENT 'Name of the supervisor responsible for the shift'
+  shift_id         STRING     NOT NULL  COMMENT 'Unique identifier for each work shift record (UUID primary key)',
+  shift_name       STRING     NOT NULL  COMMENT 'Descriptive name of the shift (e.g., Morning Shift, Night Shift, Mid Shift)',
+  shift_start      TIMESTAMP  NOT NULL  COMMENT 'Scheduled start timestamp of the shift (date and time)',
+  shift_end        TIMESTAMP  NOT NULL  COMMENT 'Scheduled end timestamp of the shift (date and time)',
+  shift_supervisor STRING     NOT NULL  COMMENT 'Name or employee ID of the supervisor responsible for overseeing the shift'
 )
 USING DELTA
 COMMENT 'Work shift master data – typically 3 shifts (Morning, Afternoon, Night)'
@@ -163,14 +163,14 @@ ALTER TABLE cpg_supply_chain.dim_shift
 -- Finished goods DCs, raw material stores, and cross-dock facilities.
 -- =============================================================================
 CREATE TABLE IF NOT EXISTS cpg_supply_chain.dim_warehouse (
-  warehouse_id           STRING    NOT NULL  COMMENT 'UUID primary key for each warehouse record',
-  warehouse_name         STRING    NOT NULL  COMMENT 'Full descriptive name of the warehouse facility',
-  warehouse_code         STRING    NOT NULL  COMMENT 'Short alphanumeric code used in systems and reports',
-  type                   STRING    NOT NULL  COMMENT 'Facility type: Finished Goods DC | Raw Materials | Cold Storage | Cross-Dock | Bonded Warehouse',
+  warehouse_id           STRING    NOT NULL  COMMENT 'Unique identifier for each warehouse or storage facility (UUID primary key)',
+  warehouse_name         STRING    NOT NULL  COMMENT 'Full descriptive name of the warehouse',
+  warehouse_code         STRING    NOT NULL  COMMENT 'Short alphanumeric code used to reference the warehouse in systems and reports',
+  type                   STRING    NOT NULL  COMMENT 'Type of warehouse (e.g., Finished Goods, Raw Materials, Cold Storage, Cross-Dock)',
   country                STRING    NOT NULL  COMMENT 'Country where the warehouse is physically located',
-  region                 STRING    NOT NULL  COMMENT 'Geographic region: North America | EMEA | APAC | Latin America',
+  region                 STRING    NOT NULL  COMMENT 'Geographic region of the warehouse (e.g., APAC, EMEA, North America)',
   storage_capacity_units DOUBLE    NOT NULL  COMMENT 'Maximum number of units the warehouse can store at full capacity',
-  active                 BOOLEAN   NOT NULL  COMMENT 'TRUE = warehouse is active and available for inventory operations'
+  active                 BOOLEAN   NOT NULL  COMMENT 'Indicates whether the warehouse is currently active and available for inventory operations (TRUE/FALSE)'
 )
 USING DELTA
 PARTITIONED BY (region)
@@ -200,13 +200,13 @@ ALTER TABLE cpg_supply_chain.dim_warehouse
 -- Retail and B2B customer master with channel segmentation.
 -- =============================================================================
 CREATE TABLE IF NOT EXISTS cpg_supply_chain.dim_customer (
-  customer_id      STRING    NOT NULL  COMMENT 'UUID primary key for each customer record',
+  customer_id      STRING    NOT NULL  COMMENT 'Unique identifier for each customer record (UUID primary key)',
   customer_name    STRING    NOT NULL  COMMENT 'Full name of the customer or business entity',
-  customer_segment STRING    NOT NULL  COMMENT 'Market segment: Mass Retail | Drug/Pharmacy | Grocery | E-Commerce | Club | Dollar | Healthcare B2B',
+  customer_segment STRING    NOT NULL  COMMENT 'Market segment the customer belongs to (e.g., Enterprise, SMB, Retail, Wholesale)',
   country          STRING    NOT NULL  COMMENT 'Country where the customer is located or registered',
-  region           STRING    NOT NULL  COMMENT 'Geographic region: North America | EMEA | APAC | Latin America',
-  channel          STRING    NOT NULL  COMMENT 'Sales channel: Direct | E-Commerce | Distributor | Wholesale | B2B Direct | Drop-Ship',
-  active           BOOLEAN   NOT NULL  COMMENT 'TRUE = customer account is active'
+  region           STRING    NOT NULL  COMMENT 'Geographic region of the customer (e.g., APAC, EMEA, North America)',
+  channel          STRING    NOT NULL  COMMENT 'Sales or distribution channel through which the customer orders (e.g., Direct, E-Commerce, Distributor)',
+  active           BOOLEAN   NOT NULL  COMMENT 'Indicates whether the customer account is currently active (TRUE/FALSE)'
 )
 USING DELTA
 PARTITIONED BY (region)
@@ -232,13 +232,13 @@ ALTER TABLE cpg_supply_chain.dim_customer
 -- Delivery destination master: retail stores, customer DCs, 3PLs.
 -- =============================================================================
 CREATE TABLE IF NOT EXISTS cpg_supply_chain.dim_destination (
-  destination_id   STRING    NOT NULL  COMMENT 'UUID primary key for each destination record',
-  destination_name STRING    NOT NULL  COMMENT 'Full name of the destination (store, DC, 3PL)',
-  destination_type STRING    NOT NULL  COMMENT 'Type: Retail Store | Customer DC | 3PL Facility | End Customer',
+  destination_id   STRING    NOT NULL  COMMENT 'Unique identifier for each shipment or delivery destination (UUID primary key)',
+  destination_name STRING    NOT NULL  COMMENT 'Full name of the destination location (e.g., store name, customer site, distribution hub)',
+  destination_type STRING    NOT NULL  COMMENT 'Type of destination (e.g., Retail Store, Customer DC, 3PL Facility, End Customer)',
   country          STRING    NOT NULL  COMMENT 'Country where the destination is located',
-  region           STRING    NOT NULL  COMMENT 'Geographic region: North America | EMEA | APAC | Latin America',
-  lat              DOUBLE              COMMENT 'Latitude coordinate for geo-routing analysis',
-  lon              DOUBLE              COMMENT 'Longitude coordinate for geo-routing analysis'
+  region           STRING    NOT NULL  COMMENT 'Geographic region of the destination (e.g., APAC, EMEA, North America)',
+  lat              DOUBLE              COMMENT 'Latitude coordinate of the destination for geographic/routing analysis',
+  lon              DOUBLE              COMMENT 'Longitude coordinate of the destination for geographic/routing analysis'
 )
 USING DELTA
 PARTITIONED BY (region)
@@ -265,13 +265,13 @@ ALTER TABLE cpg_supply_chain.dim_destination
 -- Logistics carrier master: road, ocean, air, rail providers.
 -- =============================================================================
 CREATE TABLE IF NOT EXISTS cpg_supply_chain.dim_carrier (
-  carrier_id            STRING    NOT NULL  COMMENT 'UUID primary key for each carrier record',
+  carrier_id            STRING    NOT NULL  COMMENT 'Unique identifier for each logistics carrier or freight provider (UUID primary key)',
   carrier_name          STRING    NOT NULL  COMMENT 'Full legal or trade name of the carrier',
-  carrier_type          STRING    NOT NULL  COMMENT 'Mode: Air | Ocean | Road | Rail | Courier',
-  country               STRING    NOT NULL  COMMENT 'Country where the carrier is headquartered',
-  avg_transit_days      DOUBLE    NOT NULL  COMMENT 'Historical average transit days from pickup to delivery',
-  on_time_delivery_pct  DOUBLE    NOT NULL  COMMENT 'Percentage of shipments delivered on time (0–100)',
-  active                BOOLEAN   NOT NULL  COMMENT 'TRUE = carrier is active and available for scheduling'
+  carrier_type          STRING    NOT NULL  COMMENT 'Mode or type of carrier (e.g., Air, Ocean, Road, Rail, Courier)',
+  country               STRING    NOT NULL  COMMENT 'Country where the carrier is headquartered or primarily operates',
+  avg_transit_days      DOUBLE    NOT NULL  COMMENT 'Historical average number of transit days from pickup to delivery for this carrier',
+  on_time_delivery_pct  DOUBLE    NOT NULL  COMMENT 'Percentage of shipments delivered on or before the expected delivery date (0-100)',
+  active                BOOLEAN   NOT NULL  COMMENT 'Indicates whether the carrier is currently active and available for scheduling (TRUE/FALSE)'
 )
 USING DELTA
 COMMENT 'Logistics carrier master data for shipment performance analysis'
@@ -302,15 +302,15 @@ ALTER TABLE cpg_supply_chain.dim_carrier
 -- Product/SKU master for all CPG items across categories and brands.
 -- =============================================================================
 CREATE TABLE IF NOT EXISTS cpg_supply_chain.dim_product (
-  product_id      STRING    NOT NULL  COMMENT 'UUID primary key for each product/SKU record',
-  sku             STRING    NOT NULL  COMMENT 'Stock Keeping Unit – unique alphanumeric identifier',
+  product_id      STRING    NOT NULL  COMMENT 'Unique identifier for each product/SKU record (UUID primary key)',
+  sku             STRING    NOT NULL  COMMENT 'Stock Keeping Unit - unique alphanumeric code used to identify and track the product in inventory',
   product_name    STRING    NOT NULL  COMMENT 'Full descriptive name of the product',
   category        STRING    NOT NULL  COMMENT 'Top-level category: Baby & Child Care | Personal Care | Family Care | Professional | Health & Hygiene',
-  sub_category    STRING    NOT NULL  COMMENT 'Sub-category within the category hierarchy',
-  brand           STRING    NOT NULL  COMMENT 'Brand name (e.g. Huggies, Kleenex, Cottonelle, Depend)',
-  unit_weight_kg  DOUBLE    NOT NULL  COMMENT 'Physical weight of one unit in kilograms for freight calculations',
-  packaging_type  STRING    NOT NULL  COMMENT 'Packaging: Case | Box | Carton | Bag | Shrink Wrap | Shipper | Canister | Pallet',
-  active          BOOLEAN   NOT NULL  COMMENT 'TRUE = product is active and available for sale or production'
+  sub_category    STRING    NOT NULL  COMMENT 'Product sub-category within a broader category hierarchy (e.g., Electronics > Smartphones)',
+  brand           STRING    NOT NULL  COMMENT 'Brand name under which the product is sold or manufactured',
+  unit_weight_kg  DOUBLE    NOT NULL  COMMENT 'Physical weight of one unit of the product in kilograms, used for freight and handling calculations',
+  packaging_type  STRING    NOT NULL  COMMENT 'Type of packaging used for the product (e.g., Box, Pallet, Crate, Blister Pack)',
+  active          BOOLEAN   NOT NULL  COMMENT 'Indicates whether the product is currently active and available for sale or production (TRUE/FALSE)'
 )
 USING DELTA
 PARTITIONED BY (category)

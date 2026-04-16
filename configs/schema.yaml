@@ -10,116 +10,359 @@ dimensions:
     description: "Master data for raw material suppliers, co-packers, and 3PL vendors"
     primary_key: vendor_id
     columns:
-      vendor_id:      { type: UUID,    nullable: false, pk: true }
-      vendor_name:    { type: STRING,  nullable: false }
-      vendor_type:    { type: STRING,  nullable: false }
-      country:        { type: STRING,  nullable: false }
-      region:         { type: STRING,  nullable: false }
-      tier:           { type: STRING,  nullable: false }
-      reliability_score:    { type: FLOAT, nullable: false, min: 0.0,  max: 1.0 }
-      avg_lead_time_days:   { type: FLOAT, nullable: false, min: 5.0,  max: 90.0 }
-      active:         { type: BOOLEAN, nullable: false }
+      vendor_id:
+        type: UUID
+        nullable: false
+        pk: true
+        description: "Unique identifier for each vendor record (UUID primary key)"
+      vendor_name:
+        type: STRING
+        nullable: false
+        description: "Full legal or trade name of the vendor/supplier"
+      vendor_type:
+        type: STRING
+        nullable: false
+        description: "Classification of the vendor (e.g., raw material, contract manufacturer, 3PL)"
+      country:
+        type: STRING
+        nullable: false
+        description: "Country where the vendor is headquartered or primarily operates"
+      region:
+        type: STRING
+        nullable: false
+        description: "Geographic region of the vendor (e.g., APAC, EMEA, North America)"
+      tier:
+        type: STRING
+        nullable: false
+        description: "Vendor tier classification indicating strategic importance (e.g., Tier 1, Tier 2, Tier 3)"
+      reliability_score:
+        type: FLOAT
+        nullable: false
+        min: 0.0
+        max: 1.0
+        description: "Composite reliability score (0-1 or 0-100) based on past delivery performance and quality metrics"
+      avg_lead_time_days:
+        type: FLOAT
+        nullable: false
+        min: 5.0
+        max: 90.0
+        description: "Average number of days from purchase order placement to goods receipt for this vendor"
+      active:
+        type: BOOLEAN
+        nullable: false
+        description: "Indicates whether the vendor is currently active and eligible for new purchase orders (TRUE/FALSE)"
 
   dim_plant:
     description: "Manufacturing and conversion plant master data"
     primary_key: plant_id
     columns:
-      plant_id:                { type: UUID,    nullable: false, pk: true }
-      plant_name:              { type: STRING,  nullable: false }
-      plant_code:              { type: STRING,  nullable: false, unique: true }
-      country:                 { type: STRING,  nullable: false }
-      region:                  { type: STRING,  nullable: false }
-      capacity_units_per_day:  { type: FLOAT,   nullable: false, min: 5000.0,  max: 500000.0 }
-      plant_type:              { type: STRING,  nullable: false }
-      active:                  { type: BOOLEAN, nullable: false }
+      plant_id:
+        type: UUID
+        nullable: false
+        pk: true
+        description: "Unique identifier for each manufacturing or distribution plant (UUID primary key)"
+      plant_name:
+        type: STRING
+        nullable: false
+        description: "Full descriptive name of the plant facility"
+      plant_code:
+        type: STRING
+        nullable: false
+        unique: true
+        description: "Short alphanumeric code used to reference the plant in systems and reports"
+      country:
+        type: STRING
+        nullable: false
+        description: "Country where the plant is physically located"
+      region:
+        type: STRING
+        nullable: false
+        description: "Geographic region of the plant (e.g., APAC, EMEA, North America)"
+      capacity_units_per_day:
+        type: FLOAT
+        nullable: false
+        min: 5000.0
+        max: 500000.0
+        description: "Maximum number of units the plant can produce or process in a single day under normal conditions"
+      plant_type:
+        type: STRING
+        nullable: false
+        description: "Type or function of the plant (e.g., Assembly, Fabrication, Packaging, Distribution)"
+      active:
+        type: BOOLEAN
+        nullable: false
+        description: "Indicates whether the plant is currently operational and accepting production orders (TRUE/FALSE)"
 
   dim_date:
     description: "Calendar date dimension covering the reporting period"
     primary_key: date_id
     columns:
-      date_id:        { type: UUID,    nullable: false, pk: true }
-      full_date:      { type: DATE,    nullable: false, unique: true }
-      year:           { type: INT,     nullable: false }
-      quarter:        { type: INT,     nullable: false, min: 1, max: 4 }
-      month:          { type: INT,     nullable: false, min: 1, max: 12 }
-      week:           { type: INT,     nullable: false, min: 1, max: 53 }
-      month_name:     { type: STRING,  nullable: false }
-      day_of_week:    { type: STRING,  nullable: false }
-      is_weekend:     { type: BOOLEAN, nullable: false }
-      is_holiday:     { type: BOOLEAN, nullable: false }
+      date_id:
+        type: UUID
+        nullable: false
+        pk: true
+        description: "Unique identifier for each calendar date record (UUID primary key)"
+      full_date:
+        type: DATE
+        nullable: false
+        unique: true
+        description: "The complete calendar date value (YYYY-MM-DD format)"
+      year:
+        type: INT
+        nullable: false
+        description: "Calendar year extracted from the full date (e.g., 2024)"
+      quarter:
+        type: INT
+        nullable: false
+        min: 1
+        max: 4
+        description: "Fiscal or calendar quarter number (1-4)"
+      month:
+        type: INT
+        nullable: false
+        min: 1
+        max: 12
+        description: "Calendar month number (1-12)"
+      week:
+        type: INT
+        nullable: false
+        min: 1
+        max: 53
+        description: "ISO week number of the year (1-53)"
+      month_name:
+        type: STRING
+        nullable: false
+        description: "Full name of the month (e.g., January, February)"
+      day_of_week:
+        type: STRING
+        nullable: false
+        description: "Name of the day of the week (e.g., Monday, Tuesday)"
+      is_weekend:
+        type: BOOLEAN
+        nullable: false
+        description: "Flag indicating whether the date falls on a Saturday or Sunday (TRUE/FALSE)"
+      is_holiday:
+        type: BOOLEAN
+        nullable: false
+        description: "Flag indicating whether the date is a recognized public or company holiday (TRUE/FALSE)"
 
   dim_shift:
     description: "Production shift definitions for manufacturing operations"
     primary_key: shift_id
     columns:
-      shift_id:         { type: UUID,      nullable: false, pk: true }
-      shift_name:       { type: STRING,    nullable: false }
-      shift_start:      { type: TIMESTAMP, nullable: false }
-      shift_end:        { type: TIMESTAMP, nullable: false }
-      shift_supervisor: { type: STRING,    nullable: false }
+      shift_id:
+        type: UUID
+        nullable: false
+        pk: true
+        description: "Unique identifier for each work shift record (UUID primary key)"
+      shift_name:
+        type: STRING
+        nullable: false
+        description: "Descriptive name of the shift (e.g., Morning Shift, Night Shift, Mid Shift)"
+      shift_start:
+        type: TIMESTAMP
+        nullable: false
+        description: "Scheduled start timestamp of the shift (date and time)"
+      shift_end:
+        type: TIMESTAMP
+        nullable: false
+        description: "Scheduled end timestamp of the shift (date and time)"
+      shift_supervisor:
+        type: STRING
+        nullable: false
+        description: "Name or employee ID of the supervisor responsible for overseeing the shift"
 
   dim_warehouse:
     description: "Finished goods DCs, raw material stores, and cross-dock facilities"
     primary_key: warehouse_id
     columns:
-      warehouse_id:           { type: UUID,    nullable: false, pk: true }
-      warehouse_name:         { type: STRING,  nullable: false }
-      warehouse_code:         { type: STRING,  nullable: false, unique: true }
-      type:                   { type: STRING,  nullable: false }
-      country:                { type: STRING,  nullable: false }
-      region:                 { type: STRING,  nullable: false }
-      storage_capacity_units: { type: FLOAT,   nullable: false, min: 10000.0, max: 2000000.0 }
-      active:                 { type: BOOLEAN, nullable: false }
+      warehouse_id:
+        type: UUID
+        nullable: false
+        pk: true
+        description: "Unique identifier for each warehouse or storage facility (UUID primary key)"
+      warehouse_name:
+        type: STRING
+        nullable: false
+        description: "Full descriptive name of the warehouse"
+      warehouse_code:
+        type: STRING
+        nullable: false
+        unique: true
+        description: "Short alphanumeric code used to reference the warehouse in systems and reports"
+      type:
+        type: STRING
+        nullable: false
+        description: "Type of warehouse (e.g., Finished Goods, Raw Materials, Cold Storage, Cross-Dock)"
+      country:
+        type: STRING
+        nullable: false
+        description: "Country where the warehouse is physically located"
+      region:
+        type: STRING
+        nullable: false
+        description: "Geographic region of the warehouse (e.g., APAC, EMEA, North America)"
+      storage_capacity_units:
+        type: FLOAT
+        nullable: false
+        min: 10000.0
+        max: 2000000.0
+        description: "Maximum number of units the warehouse can store at full capacity"
+      active:
+        type: BOOLEAN
+        nullable: false
+        description: "Indicates whether the warehouse is currently active and available for inventory operations (TRUE/FALSE)"
 
   dim_customer:
     description: "Retail and B2B customer master including channel segmentation"
     primary_key: customer_id
     columns:
-      customer_id:       { type: UUID,    nullable: false, pk: true }
-      customer_name:     { type: STRING,  nullable: false }
-      customer_segment:  { type: STRING,  nullable: false }
-      country:           { type: STRING,  nullable: false }
-      region:            { type: STRING,  nullable: false }
-      channel:           { type: STRING,  nullable: false }
-      active:            { type: BOOLEAN, nullable: false }
+      customer_id:
+        type: UUID
+        nullable: false
+        pk: true
+        description: "Unique identifier for each customer record (UUID primary key)"
+      customer_name:
+        type: STRING
+        nullable: false
+        description: "Full name of the customer or business entity"
+      customer_segment:
+        type: STRING
+        nullable: false
+        description: "Market segment the customer belongs to (e.g., Enterprise, SMB, Retail, Wholesale)"
+      country:
+        type: STRING
+        nullable: false
+        description: "Country where the customer is located or registered"
+      region:
+        type: STRING
+        nullable: false
+        description: "Geographic region of the customer (e.g., APAC, EMEA, North America)"
+      channel:
+        type: STRING
+        nullable: false
+        description: "Sales or distribution channel through which the customer orders (e.g., Direct, E-Commerce, Distributor)"
+      active:
+        type: BOOLEAN
+        nullable: false
+        description: "Indicates whether the customer account is currently active (TRUE/FALSE)"
 
   dim_destination:
     description: "Delivery destination master: retail stores, customer DCs, 3PLs"
     primary_key: destination_id
     columns:
-      destination_id:    { type: UUID,   nullable: false, pk: true }
-      destination_name:  { type: STRING, nullable: false }
-      destination_type:  { type: STRING, nullable: false }
-      country:           { type: STRING, nullable: false }
-      region:            { type: STRING, nullable: false }
-      lat:               { type: FLOAT,  nullable: true }
-      lon:               { type: FLOAT,  nullable: true }
+      destination_id:
+        type: UUID
+        nullable: false
+        pk: true
+        description: "Unique identifier for each shipment or delivery destination (UUID primary key)"
+      destination_name:
+        type: STRING
+        nullable: false
+        description: "Full name of the destination location (e.g., store name, customer site, distribution hub)"
+      destination_type:
+        type: STRING
+        nullable: false
+        description: "Type of destination (e.g., Retail Store, Customer DC, 3PL Facility, End Customer)"
+      country:
+        type: STRING
+        nullable: false
+        description: "Country where the destination is located"
+      region:
+        type: STRING
+        nullable: false
+        description: "Geographic region of the destination (e.g., APAC, EMEA, North America)"
+      lat:
+        type: FLOAT
+        nullable: true
+        description: "Latitude coordinate of the destination for geographic/routing analysis"
+      lon:
+        type: FLOAT
+        nullable: true
+        description: "Longitude coordinate of the destination for geographic/routing analysis"
 
   dim_carrier:
     description: "Logistics carrier master: road, ocean, air, rail providers"
     primary_key: carrier_id
     columns:
-      carrier_id:            { type: UUID,    nullable: false, pk: true }
-      carrier_name:          { type: STRING,  nullable: false }
-      carrier_type:          { type: STRING,  nullable: false }
-      country:               { type: STRING,  nullable: false }
-      avg_transit_days:      { type: FLOAT,   nullable: false, min: 1.0,  max: 45.0 }
-      on_time_delivery_pct:  { type: FLOAT,   nullable: false, min: 60.0, max: 99.9 }
-      active:                { type: BOOLEAN, nullable: false }
+      carrier_id:
+        type: UUID
+        nullable: false
+        pk: true
+        description: "Unique identifier for each logistics carrier or freight provider (UUID primary key)"
+      carrier_name:
+        type: STRING
+        nullable: false
+        description: "Full legal or trade name of the carrier"
+      carrier_type:
+        type: STRING
+        nullable: false
+        description: "Mode or type of carrier (e.g., Air, Ocean, Road, Rail, Courier)"
+      country:
+        type: STRING
+        nullable: false
+        description: "Country where the carrier is headquartered or primarily operates"
+      avg_transit_days:
+        type: FLOAT
+        nullable: false
+        min: 1.0
+        max: 45.0
+        description: "Historical average number of transit days from pickup to delivery for this carrier"
+      on_time_delivery_pct:
+        type: FLOAT
+        nullable: false
+        min: 60.0
+        max: 99.9
+        description: "Percentage of shipments delivered on or before the expected delivery date (0-100)"
+      active:
+        type: BOOLEAN
+        nullable: false
+        description: "Indicates whether the carrier is currently active and available for scheduling (TRUE/FALSE)"
 
   dim_product:
     description: "Product/SKU master for all CPG items across categories and brands"
     primary_key: product_id
     columns:
-      product_id:      { type: UUID,    nullable: false, pk: true }
-      sku:             { type: STRING,  nullable: false, unique: true }
-      product_name:    { type: STRING,  nullable: false }
-      category:        { type: STRING,  nullable: false }
-      sub_category:    { type: STRING,  nullable: false }
-      brand:           { type: STRING,  nullable: false }
-      unit_weight_kg:  { type: FLOAT,   nullable: false, min: 0.05, max: 25.0 }
-      packaging_type:  { type: STRING,  nullable: false }
-      active:          { type: BOOLEAN, nullable: false }
+      product_id:
+        type: UUID
+        nullable: false
+        pk: true
+        description: "Unique identifier for each product/SKU record (UUID primary key)"
+      sku:
+        type: STRING
+        nullable: false
+        unique: true
+        description: "Stock Keeping Unit - unique alphanumeric code used to identify and track the product in inventory"
+      product_name:
+        type: STRING
+        nullable: false
+        description: "Full descriptive name of the product"
+      category:
+        type: STRING
+        nullable: false
+        description: "Top-level product category (e.g., Baby & Child Care, Personal Care, Family Care)"
+      sub_category:
+        type: STRING
+        nullable: false
+        description: "Product sub-category within a broader category hierarchy (e.g., Electronics > Smartphones)"
+      brand:
+        type: STRING
+        nullable: false
+        description: "Brand name under which the product is sold or manufactured"
+      unit_weight_kg:
+        type: FLOAT
+        nullable: false
+        min: 0.05
+        max: 25.0
+        description: "Physical weight of one unit of the product in kilograms, used for freight and handling calculations"
+      packaging_type:
+        type: STRING
+        nullable: false
+        description: "Type of packaging used for the product (e.g., Box, Pallet, Crate, Blister Pack)"
+      active:
+        type: BOOLEAN
+        nullable: false
+        description: "Indicates whether the product is currently active and available for sale or production (TRUE/FALSE)"
 
 facts:
 
@@ -132,18 +375,71 @@ facts:
       date_id:      dim_date
       warehouse_id: dim_warehouse
     columns:
-      procurement_id:         { type: UUID,   nullable: false, pk: true }
-      vendor_id:              { type: UUID,   nullable: false, fk: dim_vendor }
-      product_id:             { type: UUID,   nullable: false, fk: dim_product }
-      date_id:                { type: UUID,   nullable: false, fk: dim_date }
-      warehouse_id:           { type: UUID,   nullable: false, fk: dim_warehouse }
-      quantity_ordered:       { type: FLOAT,  nullable: false, min: 100.0,  max: 500000.0 }
-      quantity_delivered:     { type: FLOAT,  nullable: false, min: 0.0,    max: 500000.0 }
-      delivery_variance_pct:  { type: FLOAT,  nullable: false, min: -30.0,  max: 15.0 }
-      unit_cost:              { type: FLOAT,  nullable: false, min: 0.10,   max: 50.0 }
-      total_cost:             { type: FLOAT,  nullable: false, min: 0.0,    max: 5000000.0 }
-      lead_time_days:         { type: INT,    nullable: false, min: 3,      max: 120 }
-      status:                 { type: STRING, nullable: false }
+      procurement_id:
+        type: UUID
+        nullable: false
+        pk: true
+        description: "Unique identifier for each procurement transaction record (UUID primary key)"
+      vendor_id:
+        type: UUID
+        nullable: false
+        fk: dim_vendor
+        description: "Foreign key linking to dim_vendor - identifies the supplier from whom the goods were ordered"
+      product_id:
+        type: UUID
+        nullable: false
+        fk: dim_product
+        description: "Foreign key linking to dim_product - identifies the product that was procured"
+      date_id:
+        type: UUID
+        nullable: false
+        fk: dim_date
+        description: "Foreign key linking to dim_date - identifies the date the purchase order was placed"
+      warehouse_id:
+        type: UUID
+        nullable: false
+        fk: dim_warehouse
+        description: "Foreign key linking to dim_warehouse - identifies the destination warehouse for the received goods"
+      quantity_ordered:
+        type: FLOAT
+        nullable: false
+        min: 100.0
+        max: 500000.0
+        description: "Total number of units requested in the purchase order"
+      quantity_delivered:
+        type: FLOAT
+        nullable: false
+        min: 0.0
+        max: 500000.0
+        description: "Actual number of units received/delivered by the vendor against the purchase order"
+      delivery_variance_pct:
+        type: FLOAT
+        nullable: false
+        min: -30.0
+        max: 15.0
+        description: "Percentage difference between quantity ordered and quantity delivered; positive = over-delivered, negative = under-delivered"
+      unit_cost:
+        type: FLOAT
+        nullable: false
+        min: 0.10
+        max: 50.0
+        description: "Purchase price per unit of the product as agreed with the vendor (in reporting currency)"
+      total_cost:
+        type: FLOAT
+        nullable: false
+        min: 0.0
+        max: 5000000.0
+        description: "Total procurement cost for the transaction (quantity_delivered x unit_cost)"
+      lead_time_days:
+        type: INT
+        nullable: false
+        min: 3
+        max: 120
+        description: "Actual number of calendar days elapsed between order placement and delivery"
+      status:
+        type: STRING
+        nullable: false
+        description: "Current status of the procurement order (e.g., Pending, In Transit, Received, Cancelled)"
 
   fact_manufacturing:
     description: "Plant-level production runs: planned vs actual output and quality KPIs"
@@ -154,17 +450,67 @@ facts:
       date_id:    dim_date
       shift_id:   dim_shift
     columns:
-      manufacturing_id:        { type: UUID,  nullable: false, pk: true }
-      plant_id:                { type: UUID,  nullable: false, fk: dim_plant }
-      product_id:              { type: UUID,  nullable: false, fk: dim_product }
-      date_id:                 { type: UUID,  nullable: false, fk: dim_date }
-      shift_id:                { type: UUID,  nullable: false, fk: dim_shift }
-      units_planned:           { type: FLOAT, nullable: false, min: 500.0,  max: 200000.0 }
-      units_produced:          { type: FLOAT, nullable: false, min: 0.0,    max: 200000.0 }
-      defect_rate_pct:         { type: FLOAT, nullable: false, min: 0.0,    max: 10.0 }
-      throughput_rate:         { type: FLOAT, nullable: false, min: 50.0,   max: 5000.0 }
-      machine_utilization_pct: { type: FLOAT, nullable: false, min: 30.0,   max: 100.0 }
-      downtime_hours:          { type: FLOAT, nullable: false, min: 0.0,    max: 8.0 }
+      manufacturing_id:
+        type: UUID
+        nullable: false
+        pk: true
+        description: "Unique identifier for each manufacturing production run record (UUID primary key)"
+      plant_id:
+        type: UUID
+        nullable: false
+        fk: dim_plant
+        description: "Foreign key linking to dim_plant - identifies the plant where production took place"
+      product_id:
+        type: UUID
+        nullable: false
+        fk: dim_product
+        description: "Foreign key linking to dim_product - identifies the product that was manufactured"
+      date_id:
+        type: UUID
+        nullable: false
+        fk: dim_date
+        description: "Foreign key linking to dim_date - identifies the date of the production run"
+      shift_id:
+        type: UUID
+        nullable: false
+        fk: dim_shift
+        description: "Foreign key linking to dim_shift - identifies the work shift during which production occurred"
+      units_planned:
+        type: FLOAT
+        nullable: false
+        min: 500.0
+        max: 200000.0
+        description: "Number of units scheduled for production in this run"
+      units_produced:
+        type: FLOAT
+        nullable: false
+        min: 0.0
+        max: 200000.0
+        description: "Actual number of units successfully produced during the run"
+      defect_rate_pct:
+        type: FLOAT
+        nullable: false
+        min: 0.0
+        max: 10.0
+        description: "Percentage of produced units that failed quality inspection or were deemed defective (0-100)"
+      throughput_rate:
+        type: FLOAT
+        nullable: false
+        min: 50.0
+        max: 5000.0
+        description: "Rate of units produced per hour or per shift, measuring production efficiency"
+      machine_utilization_pct:
+        type: FLOAT
+        nullable: false
+        min: 30.0
+        max: 100.0
+        description: "Percentage of total available machine capacity utilized during the production run (0-100)"
+      downtime_hours:
+        type: FLOAT
+        nullable: false
+        min: 0.0
+        max: 8.0
+        description: "Total hours of unplanned or planned machine/equipment downtime recorded during the shift"
 
   fact_inventory:
     description: "Daily warehouse inventory snapshots with stock health flags"
@@ -174,15 +520,56 @@ facts:
       product_id:   dim_product
       date_id:      dim_date
     columns:
-      inventory_id:    { type: UUID,  nullable: false, pk: true }
-      warehouse_id:    { type: UUID,  nullable: false, fk: dim_warehouse }
-      product_id:      { type: UUID,  nullable: false, fk: dim_product }
-      date_id:         { type: UUID,  nullable: false, fk: dim_date }
-      stock_on_hand:   { type: FLOAT, nullable: false, min: 0.0,    max: 1000000.0 }
-      reorder_point:   { type: FLOAT, nullable: false, min: 100.0,  max: 50000.0 }
-      safety_stock:    { type: FLOAT, nullable: false, min: 50.0,   max: 20000.0 }
-      stockout_flag:   { type: FLOAT, nullable: false, min: 0.0,    max: 1.0 }
-      overstock_flag:  { type: FLOAT, nullable: false, min: 0.0,    max: 1.0 }
+      inventory_id:
+        type: UUID
+        nullable: false
+        pk: true
+        description: "Unique identifier for each inventory snapshot record (UUID primary key)"
+      warehouse_id:
+        type: UUID
+        nullable: false
+        fk: dim_warehouse
+        description: "Foreign key linking to dim_warehouse - identifies the warehouse where inventory is held"
+      product_id:
+        type: UUID
+        nullable: false
+        fk: dim_product
+        description: "Foreign key linking to dim_product - identifies the product being tracked"
+      date_id:
+        type: UUID
+        nullable: false
+        fk: dim_date
+        description: "Foreign key linking to dim_date - identifies the date of the inventory snapshot"
+      stock_on_hand:
+        type: FLOAT
+        nullable: false
+        min: 0.0
+        max: 1000000.0
+        description: "Actual quantity of units physically available in the warehouse on the snapshot date"
+      reorder_point:
+        type: FLOAT
+        nullable: false
+        min: 100.0
+        max: 50000.0
+        description: "Minimum stock level threshold below which a replenishment order should be triggered"
+      safety_stock:
+        type: FLOAT
+        nullable: false
+        min: 50.0
+        max: 20000.0
+        description: "Buffer stock maintained to protect against demand uncertainty or supply delays"
+      stockout_flag:
+        type: FLOAT
+        nullable: false
+        min: 0.0
+        max: 1.0
+        description: "Binary flag indicating that stock on hand has dropped to zero or below the safety stock level (1 = stockout, 0 = no stockout)"
+      overstock_flag:
+        type: FLOAT
+        nullable: false
+        min: 0.0
+        max: 1.0
+        description: "Binary flag indicating that stock on hand significantly exceeds demand requirements, tying up working capital (1 = overstock, 0 = normal)"
 
   fact_shipment:
     description: "Outbound shipment records with transit performance and freight cost"
@@ -194,19 +581,76 @@ facts:
       origin_warehouse_id:  dim_warehouse
       destination_id:       dim_destination
     columns:
-      shipment_id:             { type: UUID,   nullable: false, pk: true }
-      carrier_id:              { type: UUID,   nullable: false, fk: dim_carrier }
-      product_id:              { type: UUID,   nullable: false, fk: dim_product }
-      date_id:                 { type: UUID,   nullable: false, fk: dim_date }
-      origin_warehouse_id:     { type: UUID,   nullable: false, fk: dim_warehouse }
-      destination_id:          { type: UUID,   nullable: false, fk: dim_destination }
-      quantity_shipped:        { type: FLOAT,  nullable: false, min: 50.0,   max: 100000.0 }
-      quantity_received:       { type: FLOAT,  nullable: false, min: 0.0,    max: 100000.0 }
-      transit_days_actual:     { type: FLOAT,  nullable: false, min: 1.0,    max: 60.0 }
-      transit_days_expected:   { type: FLOAT,  nullable: false, min: 1.0,    max: 45.0 }
-      delivery_variance_days:  { type: FLOAT,  nullable: false, min: -5.0,   max: 20.0 }
-      freight_cost:            { type: FLOAT,  nullable: false, min: 50.0,   max: 200000.0 }
-      shipment_status:         { type: STRING, nullable: false }
+      shipment_id:
+        type: UUID
+        nullable: false
+        pk: true
+        description: "Unique identifier for each shipment record (UUID primary key)"
+      carrier_id:
+        type: UUID
+        nullable: false
+        fk: dim_carrier
+        description: "Foreign key linking to dim_carrier - identifies the logistics provider handling the shipment"
+      product_id:
+        type: UUID
+        nullable: false
+        fk: dim_product
+        description: "Foreign key linking to dim_product - identifies the product being shipped"
+      date_id:
+        type: UUID
+        nullable: false
+        fk: dim_date
+        description: "Foreign key linking to dim_date - identifies the date the shipment was dispatched"
+      origin_warehouse_id:
+        type: UUID
+        nullable: false
+        fk: dim_warehouse
+        description: "Foreign key linking to dim_warehouse - identifies the originating warehouse from which the shipment departed"
+      destination_id:
+        type: UUID
+        nullable: false
+        fk: dim_destination
+        description: "Foreign key linking to dim_destination - identifies the delivery endpoint for the shipment"
+      quantity_shipped:
+        type: FLOAT
+        nullable: false
+        min: 50.0
+        max: 100000.0
+        description: "Total number of units loaded and dispatched in this shipment"
+      quantity_received:
+        type: FLOAT
+        nullable: false
+        min: 0.0
+        max: 100000.0
+        description: "Total number of units confirmed as received at the destination"
+      transit_days_actual:
+        type: FLOAT
+        nullable: false
+        min: 1.0
+        max: 60.0
+        description: "Actual number of days elapsed from shipment dispatch to delivery at destination"
+      transit_days_expected:
+        type: FLOAT
+        nullable: false
+        min: 1.0
+        max: 45.0
+        description: "Carrier-committed or SLA-based number of transit days promised at time of booking"
+      delivery_variance_days:
+        type: FLOAT
+        nullable: false
+        min: -5.0
+        max: 20.0
+        description: "Difference between actual and expected transit days; positive = late, negative = early delivery"
+      freight_cost:
+        type: FLOAT
+        nullable: false
+        min: 50.0
+        max: 200000.0
+        description: "Total freight and logistics cost charged by the carrier for this shipment (in reporting currency)"
+      shipment_status:
+        type: STRING
+        nullable: false
+        description: "Current status of the shipment (e.g., In Transit, Delivered, Delayed, Lost, Returned)"
 
   fact_sales_demand:
     description: "Customer demand and order fulfillment with revenue"
@@ -217,12 +661,52 @@ facts:
       date_id:         dim_date
       destination_id:  dim_destination
     columns:
-      demand_id:            { type: UUID,  nullable: false, pk: true }
-      product_id:           { type: UUID,  nullable: false, fk: dim_product }
-      customer_id:          { type: UUID,  nullable: false, fk: dim_customer }
-      date_id:              { type: UUID,  nullable: false, fk: dim_date }
-      destination_id:       { type: UUID,  nullable: false, fk: dim_destination }
-      units_demanded:       { type: FLOAT, nullable: false, min: 10.0,  max: 500000.0 }
-      units_fulfilled:      { type: FLOAT, nullable: false, min: 0.0,   max: 500000.0 }
-      fulfillment_rate_pct: { type: FLOAT, nullable: false, min: 0.0,   max: 100.0 }
-      revenue:              { type: FLOAT, nullable: false, min: 0.0,   max: 20000000.0 }
+      demand_id:
+        type: UUID
+        nullable: false
+        pk: true
+        description: "Unique identifier for each sales demand record (UUID primary key)"
+      product_id:
+        type: UUID
+        nullable: false
+        fk: dim_product
+        description: "Foreign key linking to dim_product - identifies the product for which demand was recorded"
+      customer_id:
+        type: UUID
+        nullable: false
+        fk: dim_customer
+        description: "Foreign key linking to dim_customer - identifies the customer who placed the demand or order"
+      date_id:
+        type: UUID
+        nullable: false
+        fk: dim_date
+        description: "Foreign key linking to dim_date - identifies the date the demand or order was placed"
+      destination_id:
+        type: UUID
+        nullable: false
+        fk: dim_destination
+        description: "Foreign key linking to dim_destination - identifies the delivery address or destination for the order"
+      units_demanded:
+        type: FLOAT
+        nullable: false
+        min: 10.0
+        max: 500000.0
+        description: "Total number of units requested by the customer in the order or demand signal"
+      units_fulfilled:
+        type: FLOAT
+        nullable: false
+        min: 0.0
+        max: 500000.0
+        description: "Actual number of units shipped and fulfilled against the customer demand"
+      fulfillment_rate_pct:
+        type: FLOAT
+        nullable: false
+        min: 0.0
+        max: 100.0
+        description: "Percentage of demand that was successfully fulfilled (units_fulfilled / units_demanded x 100)"
+      revenue:
+        type: FLOAT
+        nullable: false
+        min: 0.0
+        max: 20000000.0
+        description: "Total revenue generated from this demand record (units_fulfilled x selling price per unit, in reporting currency)"

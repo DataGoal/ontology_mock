@@ -1,4 +1,4 @@
-Table Type,Table Name,Column Name,Data Type,PK,FK,Comment
+table_type,table_name,column_name,data_type,PK,FK,column_comments
 dim,dim_vendor,vendor_id,UUID,Y,N,Unique identifier for each vendor record (UUID primary key)
 dim,dim_vendor,vendor_name,STRING,N,N,Full legal or trade name of the vendor/supplier
 dim,dim_vendor,vendor_type,STRING,N,N,"Classification of the vendor (e.g., raw material, contract manufacturer, 3PL)"
