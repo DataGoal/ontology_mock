@@ -1,0 +1,124 @@
+Table Type,Table Name,Column Name,Data Type,PK,FK,Comment
+dim,dim_vendor,vendor_id,UUID,Y,N,Unique identifier for each vendor record (UUID primary key)
+dim,dim_vendor,vendor_name,STRING,N,N,Full legal or trade name of the vendor/supplier
+dim,dim_vendor,vendor_type,STRING,N,N,"Classification of the vendor (e.g., raw material, contract manufacturer, 3PL)"
+dim,dim_vendor,country,STRING,N,N,Country where the vendor is headquartered or primarily operates
+dim,dim_vendor,region,STRING,N,N,"Geographic region of the vendor (e.g., APAC, EMEA, North America)"
+dim,dim_vendor,tier,STRING,N,N,"Vendor tier classification indicating strategic importance (e.g., Tier 1, Tier 2, Tier 3)"
+dim,dim_vendor,reliability_score,FLOAT,N,N,Composite reliability score (0?1 or 0?100) based on past delivery performance and quality metrics
+dim,dim_vendor,avg_lead_time_days,FLOAT,N,N,Average number of days from purchase order placement to goods receipt for this vendor
+dim,dim_vendor,active,BOOLEAN,N,N,Indicates whether the vendor is currently active and eligible for new purchase orders (TRUE/FALSE)
+dim,dim_plant,plant_id,UUID,Y,N,Unique identifier for each manufacturing or distribution plant (UUID primary key)
+dim,dim_plant,plant_name,STRING,N,N,Full descriptive name of the plant facility
+dim,dim_plant,plant_code,STRING,N,N,Short alphanumeric code used to reference the plant in systems and reports
+dim,dim_plant,country,STRING,N,N,Country where the plant is physically located
+dim,dim_plant,region,STRING,N,N,"Geographic region of the plant (e.g., APAC, EMEA, North America)"
+dim,dim_plant,capacity_units_per_day,FLOAT,N,N,Maximum number of units the plant can produce or process in a single day under normal conditions
+dim,dim_plant,plant_type,STRING,N,N,"Type or function of the plant (e.g., Assembly, Fabrication, Packaging, Distribution)"
+dim,dim_plant,active,BOOLEAN,N,N,Indicates whether the plant is currently operational and accepting production orders (TRUE/FALSE)
+dim,dim_date,date_id,UUID,Y,N,Unique identifier for each calendar date record (UUID primary key)
+dim,dim_date,full_date,DATE,N,N,The complete calendar date value (YYYY-MM-DD format)
+dim,dim_date,year,INT,N,N,"Calendar year extracted from the full date (e.g., 2024)"
+dim,dim_date,quarter,INT,N,N,Fiscal or calendar quarter number (1?4)
+dim,dim_date,month,INT,N,N,Calendar month number (1?12)
+dim,dim_date,week,INT,N,N,ISO week number of the year (1?53)
+dim,dim_date,month_name,STRING,N,N,"Full name of the month (e.g., January, February)"
+dim,dim_date,day_of_week,STRING,N,N,"Name of the day of the week (e.g., Monday, Tuesday)"
+dim,dim_date,is_weekend,BOOLEAN,N,N,Flag indicating whether the date falls on a Saturday or Sunday (TRUE/FALSE)
+dim,dim_date,is_holiday,BOOLEAN,N,N,Flag indicating whether the date is a recognized public or company holiday (TRUE/FALSE)
+dim,dim_shift,shift_id,UUID,Y,N,Unique identifier for each work shift record (UUID primary key)
+dim,dim_shift,shift_name,STRING,N,N,"Descriptive name of the shift (e.g., Morning Shift, Night Shift, Mid Shift)"
+dim,dim_shift,shift_start,TIMESTAMP,N,N,Scheduled start timestamp of the shift (date and time)
+dim,dim_shift,shift_end,TIMESTAMP,N,N,Scheduled end timestamp of the shift (date and time)
+dim,dim_shift,shift_supervisor,STRING,N,N,Name or employee ID of the supervisor responsible for overseeing the shift
+dim,dim_warehouse,warehouse_id,UUID,Y,N,Unique identifier for each warehouse or storage facility (UUID primary key)
+dim,dim_warehouse,warehouse_name,STRING,N,N,Full descriptive name of the warehouse
+dim,dim_warehouse,warehouse_code,STRING,N,N,Short alphanumeric code used to reference the warehouse in systems and reports
+dim,dim_warehouse,type,STRING,N,N,"Type of warehouse (e.g., Finished Goods, Raw Materials, Cold Storage, Cross-Dock)"
+dim,dim_warehouse,country,STRING,N,N,Country where the warehouse is physically located
+dim,dim_warehouse,region,STRING,N,N,"Geographic region of the warehouse (e.g., APAC, EMEA, North America)"
+dim,dim_warehouse,storage_capacity_units,FLOAT,N,N,Maximum number of units the warehouse can store at full capacity
+dim,dim_warehouse,active,BOOLEAN,N,N,Indicates whether the warehouse is currently active and available for inventory operations (TRUE/FALSE)
+dim,dim_customer,customer_id,UUID,Y,N,Unique identifier for each customer record (UUID primary key)
+dim,dim_customer,customer_name,STRING,N,N,Full name of the customer or business entity
+dim,dim_customer,customer_segment,STRING,N,N,"Market segment the customer belongs to (e.g., Enterprise, SMB, Retail, Wholesale)"
+dim,dim_customer,country,STRING,N,N,Country where the customer is located or registered
+dim,dim_customer,region,STRING,N,N,"Geographic region of the customer (e.g., APAC, EMEA, North America)"
+dim,dim_customer,channel,STRING,N,N,"Sales or distribution channel through which the customer orders (e.g., Direct, E-Commerce, Distributor)"
+dim,dim_customer,active,BOOLEAN,N,N,Indicates whether the customer account is currently active (TRUE/FALSE)
+dim,dim_destination,destination_id,UUID,Y,N,Unique identifier for each shipment or delivery destination (UUID primary key)
+dim,dim_destination,destination_name,STRING,N,N,"Full name of the destination location (e.g., store name, customer site, distribution hub)"
+dim,dim_destination,destination_type,STRING,N,N,"Type of destination (e.g., Retail Store, Customer DC, 3PL Facility, End Customer)"
+dim,dim_destination,country,STRING,N,N,Country where the destination is located
+dim,dim_destination,region,STRING,N,N,"Geographic region of the destination (e.g., APAC, EMEA, North America)"
+dim,dim_destination,lat,FLOAT,N,N,Latitude coordinate of the destination for geographic/routing analysis
+dim,dim_destination,lon,FLOAT,N,N,Longitude coordinate of the destination for geographic/routing analysis
+dim,dim_carrier,carrier_id,UUID,Y,N,Unique identifier for each logistics carrier or freight provider (UUID primary key)
+dim,dim_carrier,carrier_name,STRING,N,N,Full legal or trade name of the carrier
+dim,dim_carrier,carrier_type,STRING,N,N,"Mode or type of carrier (e.g., Air, Ocean, Road, Rail, Courier)"
+dim,dim_carrier,country,STRING,N,N,Country where the carrier is headquartered or primarily operates
+dim,dim_carrier,avg_transit_days,FLOAT,N,N,Historical average number of transit days from pickup to delivery for this carrier
+dim,dim_carrier,on_time_delivery_pct,FLOAT,N,N,Percentage of shipments delivered on or before the expected delivery date (0?100)
+dim,dim_carrier,active,BOOLEAN,N,N,Indicates whether the carrier is currently active and available for scheduling (TRUE/FALSE)
+dim,dim_product,product_id,UUID,Y,N,Unique identifier for each product/SKU record (UUID primary key)
+dim,dim_product,sku,STRING,N,N,Stock Keeping Unit - unique alphanumeric code used to identify and track the product in inventory
+dim,dim_product,product_name,STRING,N,N,Full descriptive name of the product
+dim,dim_product,sub_category,STRING,N,N,"Product sub-category within a broader category hierarchy (e.g., Electronics > Smartphones)"
+dim,dim_product,brand,STRING,N,N,Brand name under which the product is sold or manufactured
+dim,dim_product,unit_weight_kg,FLOAT,N,N,"Physical weight of one unit of the product in kilograms, used for freight and handling calculations"
+dim,dim_product,packaging_type,STRING,N,N,"Type of packaging used for the product (e.g., Box, Pallet, Crate, Blister Pack)"
+dim,dim_product,active,BOOLEAN,N,N,Indicates whether the product is currently active and available for sale or production (TRUE/FALSE)
+fact,fact_procurement,procurement_id,UUID,Y,N,Unique identifier for each procurement transaction record (UUID primary key)
+fact,fact_procurement,vendor_id,UUID,N,Y,Foreign key linking to dim_vendor - identifies the supplier from whom the goods were ordered
+fact,fact_procurement,product_id,UUID,N,Y,Foreign key linking to dim_product - identifies the product that was procured
+fact,fact_procurement,date_id,UUID,N,Y,Foreign key linking to dim_date - identifies the date the purchase order was placed
+fact,fact_procurement,warehouse_id,UUID,N,Y,Foreign key linking to dim_warehouse - identifies the destination warehouse for the received goods
+fact,fact_procurement,quantity_ordered,FLOAT,N,N,Total number of units requested in the purchase order
+fact,fact_procurement,quantity_delivered,FLOAT,N,N,Actual number of units received/delivered by the vendor against the purchase order
+fact,fact_procurement,delivery_variance_pct,FLOAT,N,N,"Percentage difference between quantity ordered and quantity delivered; positive = over-delivered, negative = under-delivered"
+fact,fact_procurement,unit_cost,FLOAT,N,N,Purchase price per unit of the product as agreed with the vendor (in reporting currency)
+fact,fact_procurement,total_cost,FLOAT,N,N,Total procurement cost for the transaction (quantity_delivered ? unit_cost)
+fact,fact_procurement,lead_time_days,INT,N,N,Actual number of calendar days elapsed between order placement and delivery
+fact,fact_procurement,status,STRING,N,N,"Current status of the procurement order (e.g., Pending, In Transit, Received, Cancelled)"
+fact,fact_manufacturing,manufacturing_id,UUID,Y,N,Unique identifier for each manufacturing production run record (UUID primary key)
+fact,fact_manufacturing,plant_id,UUID,N,Y,Foreign key linking to dim_plant - identifies the plant where production took place
+fact,fact_manufacturing,product_id,UUID,N,Y,Foreign key linking to dim_product - identifies the product that was manufactured
+fact,fact_manufacturing,date_id,UUID,N,Y,Foreign key linking to dim_date - identifies the date of the production run
+fact,fact_manufacturing,shift_id,UUID,N,Y,Foreign key linking to dim_shift - identifies the work shift during which production occurred
+fact,fact_manufacturing,units_planned,FLOAT,N,N,Number of units scheduled for production in this run
+fact,fact_manufacturing,units_produced,FLOAT,N,N,Actual number of units successfully produced during the run
+fact,fact_manufacturing,defect_rate_pct,FLOAT,N,N,Percentage of produced units that failed quality inspection or were deemed defective (0?100)
+fact,fact_manufacturing,throughput_rate,FLOAT,N,N,"Rate of units produced per hour or per shift, measuring production efficiency"
+fact,fact_manufacturing,machine_utilization_pct,FLOAT,N,N,Percentage of total available machine capacity utilized during the production run (0?100)
+fact,fact_manufacturing,downtime_hours,FLOAT,N,N,Total hours of unplanned or planned machine/equipment downtime recorded during the shift
+fact,fact_inventory,inventory_id,UUID,Y,N,Unique identifier for each inventory snapshot record (UUID primary key)
+fact,fact_inventory,warehouse_id,UUID,N,Y,Foreign key linking to dim_warehouse - identifies the warehouse where inventory is held
+fact,fact_inventory,product_id,UUID,N,Y,Foreign key linking to dim_product - identifies the product being tracked
+fact,fact_inventory,date_id,UUID,N,Y,Foreign key linking to dim_date - identifies the date of the inventory snapshot
+fact,fact_inventory,stock_on_hand,FLOAT,N,N,Actual quantity of units physically available in the warehouse on the snapshot date
+fact,fact_inventory,reorder_point,FLOAT,N,N,Minimum stock level threshold below which a replenishment order should be triggered
+fact,fact_inventory,safety_stock,FLOAT,N,N,Buffer stock maintained to protect against demand uncertainty or supply delays
+fact,fact_inventory,stockout_flag,FLOAT,N,N,"Binary flag indicating that stock on hand has dropped to zero or below the safety stock level (1 = stockout, 0 = no stockout)"
+fact,fact_inventory,overstock_flag,FLOAT,N,N,"Binary flag indicating that stock on hand significantly exceeds demand requirements, tying up working capital (1 = overstock, 0 = normal)"
+fact,fact_shipment,shipment_id,UUID,Y,N,Unique identifier for each shipment record (UUID primary key)
+fact,fact_shipment,carrier_id,UUID,N,Y,Foreign key linking to dim_carrier - identifies the logistics provider handling the shipment
+fact,fact_shipment,product_id,UUID,N,Y,Foreign key linking to dim_product - identifies the product being shipped
+fact,fact_shipment,date_id,UUID,N,Y,Foreign key linking to dim_date - identifies the date the shipment was dispatched
+fact,fact_shipment,origin_warehouse_id,UUID,N,Y,Foreign key linking to dim_warehouse - identifies the originating warehouse from which the shipment departed
+fact,fact_shipment,destination_id,UUID,N,Y,Foreign key linking to dim_destination - identifies the delivery endpoint for the shipment
+fact,fact_shipment,quantity_shipped,FLOAT,N,N,Total number of units loaded and dispatched in this shipment
+fact,fact_shipment,quantity_received,FLOAT,N,N,Total number of units confirmed as received at the destination
+fact,fact_shipment,transit_days_actual,FLOAT,N,N,Actual number of days elapsed from shipment dispatch to delivery at destination
+fact,fact_shipment,transit_days_expected,FLOAT,N,N,Carrier-committed or SLA-based number of transit days promised at time of booking
+fact,fact_shipment,delivery_variance_days,FLOAT,N,N,"Difference between actual and expected transit days; positive = late, negative = early delivery"
+fact,fact_shipment,freight_cost,FLOAT,N,N,Total freight and logistics cost charged by the carrier for this shipment (in reporting currency)
+fact,fact_shipment,shipment_status,STRING,N,N,"Current status of the shipment (e.g., In Transit, Delivered, Delayed, Lost, Returned)"
+fact,fact_sales_demand,demand_id,UUID,Y,N,Unique identifier for each sales demand record (UUID primary key)
+fact,fact_sales_demand,product_id,UUID,N,Y,Foreign key linking to dim_product - identifies the product for which demand was recorded
+fact,fact_sales_demand,customer_id,UUID,N,Y,Foreign key linking to dim_customer - identifies the customer who placed the demand or order
+fact,fact_sales_demand,date_id,UUID,N,Y,Foreign key linking to dim_date - identifies the date the demand or order was placed
+fact,fact_sales_demand,destination_id,UUID,N,Y,Foreign key linking to dim_destination - identifies the delivery address or destination for the order
+fact,fact_sales_demand,units_demanded,FLOAT,N,N,Total number of units requested by the customer in the order or demand signal
+fact,fact_sales_demand,units_fulfilled,FLOAT,N,N,Actual number of units shipped and fulfilled against the customer?s demand
+fact,fact_sales_demand,fulfillment_rate_pct,FLOAT,N,N,Percentage of demand that was successfully fulfilled (units_fulfilled / units_demanded ? 100)
+fact,fact_sales_demand,revenue,FLOAT,N,N,"Total revenue generated from this demand record (units_fulfilled ? selling price per unit, in reporting currency)"
