@@ -26,7 +26,7 @@ from src.generators.fact_generators import (
     ProcurementFactGenerator, ManufacturingFactGenerator,
     InventoryFactGenerator, ShipmentFactGenerator, SalesDemandFactGenerator,
 )
-from src.writer import DataWriter
+from src.writer import DataWriter, DatabricksWriter
 from utils.validators import validate_table, validate_referential_integrity, validate_business_rules
 from utils.logger import get_logger
 
@@ -111,7 +111,27 @@ class CPGDataPipeline:
     >>> results  = pipeline.run()
     """
 
-    def __init__(self, configs_dir: str = "configs", output_dir: str = None):
+    def __init__(
+        self,
+        configs_dir: str = "configs",
+        output_dir: str = None,
+        writer: "DataWriter | DatabricksWriter | None" = None,
+    ):
+        """
+        Parameters
+        ----------
+        configs_dir : str
+            Path to the directory containing schema.yaml, data_volumes.yaml,
+            distributions.yaml, and relationships.yaml.  Accepts local paths
+            and DBFS paths (e.g. '/dbfs/FileStore/ontology_mock/configs').
+        output_dir : str, optional
+            Local output directory used by the default DataWriter.
+            Ignored when a custom ``writer`` is supplied.
+        writer : DataWriter | DatabricksWriter, optional
+            Pre-built writer instance.  Pass a ``DatabricksWriter`` to write
+            directly to Delta tables in Databricks.  When omitted, a
+            ``DataWriter`` (local file output) is created automatically.
+        """
         self.config = _merge_config(configs_dir)
         self.state: dict = {}  # shared state: table_name → DataFrame
 
@@ -120,14 +140,18 @@ class CPGDataPipeline:
         self.rng = np.random.default_rng(seed)
         logger.info(f"Random seed: {seed}")
 
-        # Output directory
-        out_cfg = self.config["volumes"].get("output", {})
-        self.output_dir = output_dir or out_cfg.get("output_dir", "./output")
-        self.writer = DataWriter(
-            output_dir=self.output_dir,
-            fmt=out_cfg.get("format", "csv"),
-            compress=out_cfg.get("compress", False),
-        )
+        # Use the injected writer when provided; otherwise create a local DataWriter
+        if writer is not None:
+            self.writer = writer
+            self.output_dir = writer.output_location
+        else:
+            out_cfg = self.config["volumes"].get("output", {})
+            self.output_dir = output_dir or out_cfg.get("output_dir", "./output")
+            self.writer = DataWriter(
+                output_dir=self.output_dir,
+                fmt=out_cfg.get("format", "csv"),
+                compress=out_cfg.get("compress", False),
+            )
 
         # Determine generation order and row counts
         self.generation_order = self.config["relationships"]["generation_order"]
@@ -245,5 +269,5 @@ class CPGDataPipeline:
         logger.info("── WRITE PHASE ───────────────────────────────────────")
         for table_name, df in results.items():
             self.writer.write(df, table_name)
-        logger.info(f"All files written to: {self.output_dir}")
+        logger.info(f"All tables written to: {self.writer.output_location}")
         logger.info("")

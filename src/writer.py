@@ -1,6 +1,8 @@
 """
 Data Writer – writes generated DataFrames to disk in CSV, Parquet, or JSON format.
 Supports optional gzip compression for Parquet.
+
+Also provides DatabricksWriter for writing directly to Delta tables in Databricks.
 """
 from __future__ import annotations
 
@@ -38,6 +40,10 @@ class DataWriter:
         self.fmt = fmt
         self.compress = compress
 
+    @property
+    def output_location(self) -> str:
+        return str(self.output_dir)
+
     def write(self, df: pd.DataFrame, table_name: str) -> Path:
         """Write a DataFrame to disk and return the output path."""
         ext   = self._extension()
@@ -63,3 +69,80 @@ class DataWriter:
         if self.fmt == "parquet": return "parquet"
         if self.fmt == "json":    return "jsonl"
         return "dat"
+
+
+class DatabricksWriter:
+    """
+    Writes DataFrames as Delta tables in Databricks (Unity Catalog or Hive Metastore).
+
+    Parameters
+    ----------
+    schema : str
+        Database / schema name (default: 'cpg_supply_chain').
+    catalog : str or None
+        Unity Catalog name. Leave None to use the Hive Metastore.
+    mode : str
+        Spark write mode – 'overwrite' (default) or 'append'.
+
+    Usage (inside a Databricks notebook or job)
+    --------------------------------------------
+    >>> from src.writer import DatabricksWriter
+    >>> writer = DatabricksWriter(schema="cpg_supply_chain", catalog="my_catalog")
+    >>> writer.write(df, "dim_product")
+    """
+
+    def __init__(
+        self,
+        schema: str = "cpg_supply_chain",
+        catalog: str | None = None,
+        mode: str = "overwrite",
+    ):
+        try:
+            from pyspark.sql import SparkSession  # noqa: PLC0415
+        except ImportError as exc:
+            raise ImportError(
+                "pyspark is not installed. DatabricksWriter requires a Databricks runtime."
+            ) from exc
+
+        self.spark = SparkSession.getActiveSession()
+        if self.spark is None:
+            raise RuntimeError(
+                "No active SparkSession found. Run DatabricksWriter inside Databricks."
+            )
+
+        self.catalog = catalog
+        self.schema  = schema
+        self.mode    = mode
+
+        # Create catalog (Unity Catalog only) and schema if they do not exist
+        if catalog:
+            self.spark.sql(f"CREATE CATALOG IF NOT EXISTS `{catalog}`")
+            self.spark.sql(f"USE CATALOG `{catalog}`")
+
+        self.spark.sql(f"CREATE SCHEMA IF NOT EXISTS `{schema}`")
+
+        self._full_schema = f"`{catalog}`.`{schema}`" if catalog else f"`{schema}`"
+        logger.info(f"DatabricksWriter initialised → target schema: {self._full_schema}")
+
+    @property
+    def output_location(self) -> str:
+        return self._full_schema
+
+    def write(self, df: pd.DataFrame, table_name: str) -> str:
+        """
+        Convert a pandas DataFrame to a Spark DataFrame and write it as a
+        Delta table.  Returns the fully-qualified table name.
+        """
+        full_table = f"{self._full_schema}.`{table_name}`"
+        spark_df = self.spark.createDataFrame(df)
+
+        (
+            spark_df.write
+            .format("delta")
+            .mode(self.mode)
+            .option("overwriteSchema", "true")
+            .saveAsTable(full_table)
+        )
+
+        logger.info(f"  → {full_table:<55} ({df.shape[0]:,} rows)")
+        return full_table
