@@ -126,7 +126,7 @@ JOIN nike_databricks.cpg_supply_chain.dim_shift    ds  ON fm.shift_id   = ds.shi
 
  ---- Metric View: inventory_health_metrics ----------------------
 
-CREATE OR REPLACE VIEW nike_databricks.cpg_supply_chain.inventory_health_metrics
+CREATE OR REPLACE VIEW nike_databricks.cpg_supply_chain.mv_inventory_health_metrics
 COMMENT 'Inventory health metric view'
 WITH METRICS
 LANGUAGE YAML
