@@ -1,0 +1,135 @@
+# =============================================================================
+# Metric View: mv_fact_manufacturing
+# -----------------------------------------------------------------------------
+# Semantic lens over FACT_MANUFACTURING for the CPG supply-chain ontology layer.
+#
+# Ontology mapping:
+#   - Feeds the (Plant)-[:PRODUCES]->(Product) edge in the knowledge graph.
+#   - `plant_bottleneck_score` feeds Plant node vertex weight; used by the
+#     Bottleneck Detection routine in the Signal & Feature Engineering layer.
+#   - `oee_score` (Overall Equipment Effectiveness) is the canonical CPG plant
+#     KPI — packaged here so AI agents can reason about plant performance
+#     without re-deriving it downstream.
+#
+# Consumers:
+#   - Anomaly Detection Agent  (high defect rate, downtime spikes)
+#   - Impact Analysis Agent    (propagates plant issues downstream to Product)
+#   - Recommendation Agent     (alternate-plant routing suggestions)
+# =============================================================================
+
+version: 1.1
+source: cpg_supply_chain.gold_fact.fact_manufacturing
+comment: "Manufacturing semantic layer: plant throughput, OEE, defect, and bottleneck signals for the supply-chain knowledge graph."
+
+# ----- Star-schema joins ----------------------------------------------------
+joins:
+  - name: plant
+    source: cpg_supply_chain.gold_dim.dim_plant
+    on: source.plant_id = plant.plant_id
+
+  - name: product
+    source: cpg_supply_chain.gold_dim.dim_product
+    on: source.product_id = product.product_id
+
+  - name: date
+    source: cpg_supply_chain.gold_dim.dim_date
+    on: source.date_id = date.date_id
+
+  - name: shift
+    source: cpg_supply_chain.gold_dim.dim_shift
+    on: source.shift_id = shift.shift_id
+
+# ----- Dimensions -----------------------------------------------------------
+dimensions:
+  - name: production_date
+    expr: date.full_date
+    display_name: "Production Date"
+    synonyms: ["run date", "manufacturing date"]
+
+  - name: production_week
+    expr: DATE_TRUNC('WEEK', date.full_date)
+    display_name: "Production Week"
+
+  - name: plant_name
+    expr: plant.plant_name
+    display_name: "Plant"
+    synonyms: ["factory", "manufacturing site", "facility"]
+
+  - name: plant_region
+    expr: plant.region
+    display_name: "Plant Region"
+
+  - name: plant_type
+    expr: plant.plant_type
+    display_name: "Plant Type"
+
+  - name: product_category
+    expr: product.category
+    display_name: "Category"
+
+  - name: product_brand
+    expr: product.brand
+    display_name: "Brand"
+
+  - name: shift_name
+    expr: shift.shift_name
+    display_name: "Shift"
+    synonyms: ["production shift", "work shift"]
+
+# ----- Measures: simple -> complex -----------------------------------------
+measures:
+
+  # [1] ADDITIVE --- simple SUM of produced units.
+  # Fully additive across plant, product, date, shift.
+  - name: total_units_produced
+    expr: SUM(source.units_produced)
+    display_name: "Total Units Produced"
+    comment: "Additive sum of units produced. Baseline output metric; also serves as an edge-weight input for (Plant)-[:PRODUCES]->(Product) in the knowledge graph."
+    synonyms: ["output", "production volume", "units made", "produced quantity"]
+
+  # [2] NON-ADDITIVE --- production attainment ratio.
+  # Measures how closely actual production met the plan. Classic CPG KPI.
+  # Agent use: Anomaly signal — sustained attainment < 90% triggers investigation.
+  - name: production_attainment_pct
+    expr: 100.0 * SUM(source.units_produced) / NULLIF(SUM(source.units_planned), 0)
+    display_name: "Production Attainment %"
+    comment: "Non-additive ratio: actual units produced vs planned. Sustained values below 90% are flagged by the Anomaly Detection Agent and trigger downstream Impact Analysis."
+    synonyms: ["schedule attainment", "plan adherence", "production compliance", "attainment rate"]
+
+  # [3] NON-ADDITIVE / WEIGHTED --- volume-weighted defect rate.
+  # Straight AVG(defect_rate_pct) treats small and large runs equally (wrong).
+  # Weighting by units_produced gives the true plant-level quality picture.
+  - name: weighted_defect_rate_pct
+    expr: SUM(source.defect_rate_pct * source.units_produced) / NULLIF(SUM(source.units_produced), 0)
+    display_name: "Weighted Defect Rate %"
+    comment: "Volume-weighted average defect rate. Large-run quality dominates — consistent with CPG practice. Feeds the 'high defect rate' anomaly signal."
+    synonyms: ["defect percentage", "quality defect rate", "ppm defects", "scrap rate"]
+
+  # [4] TIME METRIC (TRAILING WINDOW) --- rolling 7-day downtime.
+  # Cumulative unplanned downtime captured as a rolling signal for trend detection.
+  # Agent use: Learning Agent tracks whether alerts correlate with downtime spikes.
+  - name: rolling_7day_downtime_hours
+    expr: SUM(source.downtime_hours)
+    display_name: "Rolling 7-Day Downtime (hours)"
+    comment: "Trailing 7-day sum of downtime hours. Window-scoped — cannot be re-aggregated across time. Used by the Learning Agent to correlate alert effectiveness with downtime patterns."
+    synonyms: ["weekly downtime", "rolling downtime", "7 day downtime"]
+    window:
+      - order: production_date
+        range: trailing 7 day
+        semiadditive: last
+
+  # [5] COMPLEX / COMPOSITE --- Overall Equipment Effectiveness (OEE).
+  # The canonical manufacturing KPI: Availability x Performance x Quality.
+  #   Availability       ~ 1 - (downtime / shift_hours, assumed 8h)
+  #   Performance (Perf) ~ actual_throughput / planned_throughput
+  #                      = units_produced / units_planned (proxy)
+  #   Quality            ~ 1 - weighted_defect_rate
+  # Agent use: Plant vertex-weight input + headline metric for plant scorecards.
+  - name: oee_score
+    expr: |
+      ( (1.0 - LEAST(1.0, SUM(source.downtime_hours) / NULLIF(COUNT(DISTINCT source.manufacturing_id) * 8.0, 0)))
+      * (SUM(source.units_produced) / NULLIF(SUM(source.units_planned), 0))
+      * (1.0 - (SUM(source.defect_rate_pct * source.units_produced) / NULLIF(SUM(source.units_produced) * 100.0, 0))) )
+    display_name: "OEE Score"
+    comment: "Overall Equipment Effectiveness = Availability x Performance x Quality. Canonical plant KPI (0 to 1, world-class >= 0.85). Packaged here so the Root Cause Analysis Agent can reason about plant health without redefining it per query."
+    synonyms: ["overall equipment effectiveness", "plant effectiveness", "plant oee", "manufacturing efficiency"]

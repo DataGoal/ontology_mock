@@ -1,0 +1,147 @@
+# =============================================================================
+# Metric View: mv_fact_sales_demand
+# -----------------------------------------------------------------------------
+# Semantic lens over FACT_SALES_DEMAND for the CPG supply-chain ontology layer.
+#
+# Ontology mapping:
+#   - Feeds the (Customer)-[:DEMANDS]->(Product) edge in the knowledge graph.
+#   - `customer_dependency_score` is the canonical EDGE WEIGHT on DEMANDS.
+#   - `fulfillment_rate_pct` is the downstream impact signal for the
+#     Impact Analysis Agent (Anomaly -> Shipment -> Product -> Customer -> Revenue).
+#
+# Consumers:
+#   - Impact Analysis Agent    (quantifies revenue-at-risk downstream)
+#   - Recommendation Agent     (priority fulfillment ordering under supply stress)
+#   - Learning Agent           (tracks demand-signal drift vs forecast)
+# =============================================================================
+
+version: 1.1
+source: cpg_supply_chain.gold_fact.fact_sales_demand
+comment: "Sales-demand semantic layer: fulfillment, revenue, and customer dependency signals for the supply-chain knowledge graph."
+
+# ----- Star-schema joins ----------------------------------------------------
+joins:
+  - name: product
+    source: cpg_supply_chain.gold_dim.dim_product
+    on: source.product_id = product.product_id
+
+  - name: customer
+    source: cpg_supply_chain.gold_dim.dim_customer
+    on: source.customer_id = customer.customer_id
+
+  - name: date
+    source: cpg_supply_chain.gold_dim.dim_date
+    on: source.date_id = date.date_id
+
+  - name: destination
+    source: cpg_supply_chain.gold_dim.dim_destination
+    on: source.destination_id = destination.destination_id
+
+# ----- Dimensions -----------------------------------------------------------
+dimensions:
+  - name: demand_date
+    expr: date.full_date
+    display_name: "Demand Date"
+    synonyms: ["order date", "demand signal date"]
+
+  - name: demand_month
+    expr: DATE_TRUNC('MONTH', date.full_date)
+    display_name: "Demand Month"
+
+  - name: demand_year
+    expr: date.year
+    display_name: "Year"
+
+  - name: customer_name
+    expr: customer.customer_name
+    display_name: "Customer"
+    synonyms: ["buyer", "account", "retailer"]
+
+  - name: customer_segment
+    expr: customer.customer_segment
+    display_name: "Customer Segment"
+    synonyms: ["segment", "customer tier"]
+
+  - name: customer_channel
+    expr: customer.channel
+    display_name: "Channel"
+    synonyms: ["sales channel", "distribution channel"]
+
+  - name: customer_region
+    expr: customer.region
+    display_name: "Customer Region"
+
+  - name: product_category
+    expr: product.category
+    display_name: "Category"
+
+  - name: product_brand
+    expr: product.brand
+    display_name: "Brand"
+
+  - name: destination_region
+    expr: destination.region
+    display_name: "Destination Region"
+
+# ----- Measures: simple -> complex -----------------------------------------
+measures:
+
+  # [1] ADDITIVE --- total revenue.
+  # Fully additive across customer, product, destination, and time.
+  # The north-star metric that Impact Analysis Agent reports as revenue-at-risk.
+  - name: total_revenue
+    expr: SUM(source.revenue)
+    display_name: "Total Revenue"
+    comment: "Additive sum of fulfilled revenue. North-star metric — the Impact Analysis Agent quantifies revenue-at-risk by traversing the KG from an anomaly to affected (Customer)-[:DEMANDS]->(Product) edges and summing this measure."
+    synonyms: ["revenue", "sales", "net sales", "fulfilled revenue", "top line"]
+
+  # [2] NON-ADDITIVE --- weighted fulfillment rate.
+  # Volume-weighted at source (units_fulfilled / units_demanded).
+  # Straight AVG(fulfillment_rate_pct) would be wrong — small orders bias it.
+  # Agent use: downstream impact signal; drop below 95% flags supply pressure.
+  - name: fulfillment_rate_pct
+    expr: 100.0 * SUM(source.units_fulfilled) / NULLIF(SUM(source.units_demanded), 0)
+    display_name: "Fulfillment Rate %"
+    comment: "Non-additive: volume-weighted ratio of units fulfilled to units demanded. THE downstream impact signal — sustained drops below 95% trigger the Impact Analysis Agent to trace the cause upstream through the KG."
+    synonyms: ["case fill rate", "cfr", "order fill rate", "service level", "fill rate"]
+
+  # [4] NON-ADDITIVE --- lost revenue proxy.
+  # Revenue that WOULD have been earned if fulfillment were perfect.
+  # Uses the inverse of fulfillment rate to approximate the shortfall.
+  # Agent use: Quantifies revenue-at-risk for the Impact Analysis Agent and
+  # provides a natural dollar-denominated threshold for prioritization.
+  - name: lost_revenue_estimate
+    expr: SUM(source.revenue) * (SUM(source.units_demanded) - SUM(source.units_fulfilled)) / NULLIF(SUM(source.units_fulfilled), 0)
+    display_name: "Lost Revenue Estimate"
+    comment: "Non-additive estimate of revenue foregone due to under-fulfillment, computed as revenue x (shortfall / fulfilled). Used by the Impact Analysis Agent to report dollar-impact in root-cause reports."
+    synonyms: ["revenue at risk", "missed revenue", "unfulfilled revenue", "lost sales"]
+
+  # [5] TIME METRIC (CUMULATIVE WINDOW) --- year-to-date revenue.
+  # Classic cumulative window — sums from the start of the time range to the
+  # current row's time value. Essential for YTD trending in exec dashboards.
+  - name: cumulative_revenue_ytd
+    expr: SUM(source.revenue)
+    display_name: "Cumulative Revenue (YTD)"
+    comment: "Cumulative sum of revenue within the selected time range. Classic year-to-date pattern via the 'cumulative' window range — cannot be summed further across time."
+    synonyms: ["ytd revenue", "running revenue", "cumulative sales"]
+    window:
+      - order: demand_date
+        range: cumulative
+        semiadditive: last
+
+  # [6] COMPLEX / COMPOSITE --- Customer Dependency Score (KG edge weight).
+  # Blends: customer's share of product revenue + customer's concentration on
+  # this product + recency weighting. High score = strong demand edge;
+  # breaking it has outsized downstream impact.
+  # Agent use: EDGE WEIGHT on (Customer)-[:DEMANDS]->(Product). The Impact
+  # Analysis Agent walks these edges and uses this score to rank which
+  # customers to notify / prioritize during supply disruptions.
+  - name: customer_dependency_score
+    expr: |
+      0.5 * (SUM(source.revenue) / NULLIF(MAX(SUM(source.revenue)) OVER (), 0))
+      + 0.3 * LEAST(1.0, SUM(source.units_fulfilled) / NULLIF(SUM(source.units_demanded), 0))
+      + 0.2 * (COUNT(DISTINCT source.demand_id)
+               / NULLIF(MAX(COUNT(DISTINCT source.demand_id)) OVER (), 0))
+    display_name: "Customer Dependency Score"
+    comment: "Composite 0-1 edge weight on (Customer)-[:DEMANDS]->(Product): 50% normalized revenue share, 30% historical fulfillment consistency, 20% order-frequency share. Higher score = a supply disruption has larger revenue and relationship impact. The Impact Analysis Agent ranks customer notifications by this score."
+    synonyms: ["customer importance", "demand edge weight", "customer criticality", "relationship strength"]
