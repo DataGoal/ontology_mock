@@ -1,148 +1,105 @@
-# =============================================================================
-# Metric View: mv_fact_inventory
-# -----------------------------------------------------------------------------
-# Semantic lens over FACT_INVENTORY for the CPG supply-chain ontology layer.
-#
-# Key concept: inventory is a SEMI-ADDITIVE fact — stock-on-hand sums across
-# products or warehouses BUT MUST NOT be summed across time. This metric view
-# encodes that rule so the Anomaly Detection Agent and Recommendation Agent
-# never double-count.
-#
-# Ontology mapping:
-#   - Feeds the (Warehouse)-[:HAS_STOCK]->(Product) edge in the knowledge graph.
-#   - `inventory_health_index` is a composite EDGE WEIGHT.
-#   - `stockout_incidence_rate_pct` and `days_of_supply` are primary anomaly
-#     signals consumed by the Signal & Feature Engineering layer.
-#
-# Consumers:
-#   - Anomaly Detection Agent  (stockouts, overstocks, days-of-supply drift)
-#   - Recommendation Agent     (inventory rebalancing suggestions)
-#   - Impact Analysis Agent    (quantifies downstream fulfillment risk)
-# =============================================================================
-
 version: 1.1
-source: cpg_supply_chain.gold_fact.fact_inventory
-comment: "Inventory semantic layer: semi-additive stock snapshots, health signals, and days-of-supply for the supply-chain knowledge graph."
 
-# ----- Star-schema joins ----------------------------------------------------
+source: nike_databricks.cpg_supply_chain.fact_inventory
+
 joins:
   - name: warehouse
-    source: cpg_supply_chain.gold_dim.dim_warehouse
-    on: source.warehouse_id = warehouse.warehouse_id
-
+    source: nike_databricks.cpg_supply_chain.dim_warehouse
+    "on": source.warehouse_id = warehouse.warehouse_id
   - name: product
-    source: cpg_supply_chain.gold_dim.dim_product
-    on: source.product_id = product.product_id
-
+    source: nike_databricks.cpg_supply_chain.dim_product
+    "on": source.product_id = product.product_id
   - name: date
-    source: cpg_supply_chain.gold_dim.dim_date
-    on: source.date_id = date.date_id
+    source: nike_databricks.cpg_supply_chain.dim_date
+    "on": source.date_id = date.date_id
 
-# ----- Dimensions -----------------------------------------------------------
+comment: "Inventory semantic layer: semi-additive stock snapshots, health signals,\
+  \ and days-of-supply for the supply-chain knowledge graph."
+
 dimensions:
   - name: snapshot_date
     expr: date.full_date
-    display_name: "Snapshot Date"
-    synonyms: ["inventory date", "as of date", "stock date"]
-
   - name: snapshot_month
-    expr: DATE_TRUNC('MONTH', date.full_date)
-    display_name: "Snapshot Month"
-
+    expr: "date_trunc('month', date.full_date)"
   - name: warehouse_name
     expr: warehouse.warehouse_name
-    display_name: "Warehouse"
-    synonyms: ["dc", "distribution center", "storage location"]
-
   - name: warehouse_type
     expr: warehouse.type
-    display_name: "Warehouse Type"
-
   - name: warehouse_region
     expr: warehouse.region
-    display_name: "Warehouse Region"
-
   - name: product_category
     expr: product.category
-    display_name: "Category"
-
   - name: product_brand
     expr: product.brand
-    display_name: "Brand"
-
   - name: product_sku
     expr: product.sku
-    display_name: "SKU"
 
-# ----- Measures: simple -> complex -----------------------------------------
 measures:
-
-  # [1] SEMI-ADDITIVE --- stock on hand (canonical use case).
-  # Additive across Product and Warehouse dimensions; NOT across Date.
-  # The `window: semiadditive: last` pattern takes the latest snapshot value
-  # for each (warehouse, product) combo within the time grain selected.
-  # This is THE reason metric views exist — prevents double-counting bugs.
   - name: current_stock_on_hand
     expr: SUM(source.stock_on_hand)
-    display_name: "Current Stock on Hand"
-    comment: "SEMI-ADDITIVE: sums across product and warehouse, but takes the LAST value across time. Querying across a date range returns the latest snapshot per (warehouse, product) — never a sum of daily snapshots. Foundational for all downstream inventory analytics."
-    synonyms: ["inventory", "stock level", "on hand", "available stock", "soh"]
     window:
       - order: snapshot_date
-        range: trailing 1 day
         semiadditive: last
-
-  # [2] NON-ADDITIVE --- stockout incidence rate.
-  # Ratio of stockout days to total snapshot days.
-  # Agent use: Anomaly threshold — rate > 2% triggers Root Cause traversal.
+        range: current
+    comment: "SEMI-ADDITIVE: sums across product and warehouse, but takes the LAST\
+      \ value across time. Querying across a date range returns the latest snapshot\
+      \ per (warehouse, product) — never a sum of daily snapshots. Foundational for\
+      \ all downstream inventory analytics."
+    synonyms:
+      - inventory
+      - stock level
+      - on hand
+      - available stock
+      - soh
   - name: stockout_incidence_rate_pct
-    expr: 100.0 * SUM(source.stockout_flag) / NULLIF(COUNT(source.inventory_id), 0)
-    display_name: "Stockout Incidence Rate %"
-    comment: "Non-additive: percentage of snapshot records in a stockout state. Primary KPI for shelf-availability risk on the (Warehouse)-[:HAS_STOCK]->(Product) edge."
-    synonyms: ["stockout rate", "oos rate", "out of stock percentage", "availability gap"]
-
-  # [4] COMPLEX --- days of supply (forward-looking coverage).
-  # days_of_supply = stock_on_hand / avg_daily_demand.
-  # Approximated here using safety_stock as a daily-demand proxy since demand
-  # lives in fact_sales_demand. For a fully correct version, compose this
-  # metric view on top of a joined fact_inventory + fact_sales_demand view.
-  # Agent use: Forward-looking risk; < 7 days triggers urgent replenishment.
+    expr: "100.0 * SUM(source.stockout_flag) / NULLIF(COUNT(source.inventory_id),\
+      \ 0)"
+    comment: "Non-additive: percentage of snapshot records in a stockout state. Primary\
+      \ KPI for shelf-availability risk on the (Warehouse)-[:HAS_STOCK]->(Product)\
+      \ edge."
+    synonyms:
+      - stockout rate
+      - oos rate
+      - out of stock percentage
+      - availability gap
   - name: days_of_supply
-    expr: SUM(source.stock_on_hand) / NULLIF(SUM(source.safety_stock), 0)
-    display_name: "Days of Supply"
-    comment: "Coverage ratio of current stock to safety-stock baseline (proxy for daily demand). Values below 7 are auto-flagged by the Recommendation Agent to trigger replenishment suggestions."
-    synonyms: ["dos", "days of cover", "inventory cover", "coverage days", "forward cover"]
+    expr: "SUM(source.stock_on_hand) / NULLIF(SUM(source.safety_stock), 0)"
     window:
       - order: snapshot_date
-        range: trailing 1 day
         semiadditive: last
-
-  # [5] TIME METRIC --- rolling 14-day average of stock on hand.
-  # Smooths daily snapshot noise to expose true inventory drift.
-  # Agent use: Learning Agent compares this trend to stockout/overstock events
-  # to refine recommendation thresholds over time.
+        range: current
+    comment: Coverage ratio of current stock to safety-stock baseline (proxy for daily
+      demand). Values below 7 are auto-flagged by the Recommendation Agent to trigger
+      replenishment suggestions.
+    synonyms:
+      - dos
+      - days of cover
+      - inventory cover
+      - coverage days
+      - forward cover
   - name: rolling_14day_avg_stock
     expr: AVG(source.stock_on_hand)
-    display_name: "Rolling 14-Day Avg Stock"
-    comment: "Trailing 14-day average stock position per (sku, warehouse). Denoises daily snapshots for trend detection. Used by the Learning Agent to evaluate recommendation drift."
-    synonyms: ["avg inventory", "rolling stock position", "14 day stock average"]
     window:
       - order: snapshot_date
-        range: trailing 14 day
         semiadditive: last
-
-  # [6] COMPLEX / COMPOSITE --- Inventory Health Index (KG edge weight).
-  # Blends stockout risk, overstock drag, and safety-stock compliance into
-  # a single 0-1 score. High = healthy. Attached as an EDGE PROPERTY to
-  # (Warehouse)-[:HAS_STOCK]->(Product) in the knowledge graph.
-  # Agent use: Impact Analysis Agent uses this to rank downstream fulfillment
-  # risk when upstream supply or production anomalies occur.
+        range: trailing 14 day
+    comment: "Trailing 14-day average stock position per (sku, warehouse). Denoises\
+      \ daily snapshots for trend detection. Used by the Learning Agent to evaluate\
+      \ recommendation drift."
+    synonyms:
+      - avg inventory
+      - rolling stock position
+      - 14 day stock average
   - name: inventory_health_index
-    expr: |
-      0.5 * (1.0 - (SUM(source.stockout_flag) / NULLIF(COUNT(source.inventory_id), 0)))
-      + 0.3 * (1.0 - (SUM(source.overstock_flag) / NULLIF(COUNT(source.inventory_id), 0)))
-      + 0.2 * LEAST(1.0, SUM(source.stock_on_hand)
-                          / NULLIF(SUM(source.reorder_point) * 1.5, 0))
-    display_name: "Inventory Health Index"
-    comment: "Composite 0-1 edge weight on (Warehouse)-[:HAS_STOCK]->(Product): 50% stockout avoidance, 30% overstock avoidance, 20% coverage vs 1.5x reorder point. Drives rebalancing recommendations and downstream impact quantification."
-    synonyms: ["stock health", "inventory score", "stocking quality", "inventory kpi"]
+    expr: "0.5 * (1.0 - (SUM(source.stockout_flag) / NULLIF(COUNT(source.inventory_id),\
+      \ 0))) + 0.3 * (1.0 - (SUM(source.overstock_flag) / NULLIF(COUNT(source.inventory_id),\
+      \ 0))) + 0.2 * LEAST(1.0, SUM(source.stock_on_hand) / NULLIF(SUM(source.reorder_point)\
+      \ * 1.5, 0))"
+    comment: "Composite 0-1 edge weight on (Warehouse)-[:HAS_STOCK]->(Product): 50%\
+      \ stockout avoidance, 30% overstock avoidance, 20% coverage vs 1.5x reorder\
+      \ point. Drives rebalancing recommendations and downstream impact quantification."
+    synonyms:
+      - stock health
+      - inventory score
+      - stocking quality
+      - inventory kpi
