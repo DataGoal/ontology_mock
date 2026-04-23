@@ -124,6 +124,56 @@ JOIN nike_databricks.cpg_supply_chain.dim_plant    dp2 ON fm.plant_id   = dp2.pl
 JOIN nike_databricks.cpg_supply_chain.dim_product  dp  ON fm.product_id = dp.product_id
 JOIN nike_databricks.cpg_supply_chain.dim_shift    ds  ON fm.shift_id   = ds.shift_id;
 
+ ---- Metric View: inventory_health_metrics ----------------------
+
+CREATE OR REPLACE VIEW nike_databricks.cpg_supply_chain.mv_inventory_health_metrics
+COMMENT 'Inventory health metric view'
+WITH METRICS
+LANGUAGE YAML
+AS $$
+version: 0.1
+source: nike_databricks.cpg_supply_chain.v_inventory_health
+dimensions:
+  - name: snapshot_date
+    expr: snapshot_date
+  - name: year
+    expr: year
+  - name: month
+    expr: month
+  - name: warehouse_name
+    expr: warehouse_name
+  - name: warehouse_type
+    expr: warehouse_type
+  - name: warehouse_country
+    expr: warehouse_country
+  - name: warehouse_region
+    expr: warehouse_region
+  - name: sku
+    expr: sku
+  - name: product_name
+    expr: product_name
+  - name: category
+    expr: category
+  - name: brand
+    expr: brand
+  - name: inventory_health_status
+    expr: inventory_health_status
+measures:
+  - name: inventory_records
+    expr: COUNT(1)
+  - name: total_stock_on_hand
+    expr: SUM(stock_on_hand)
+  - name: total_safety_stock
+    expr: SUM(safety_stock)
+  - name: total_reorder_point
+    expr: SUM(reorder_point)
+  - name: stockout_count
+    expr: SUM(stockout_flag)
+  - name: overstock_count
+    expr: SUM(overstock_flag)
+  - name: avg_stock_coverage_ratio
+    expr: AVG(stock_coverage_ratio)
+$$;
 
 -- ── V_INVENTORY_HEALTH ─────────────────────────────────────────────────────
 CREATE OR REPLACE VIEW nike_databricks.cpg_supply_chain.v_inventory_health AS
