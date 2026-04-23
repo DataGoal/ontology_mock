@@ -1,0 +1,147 @@
+# =============================================================================
+# Metric View: mv_fact_shipment
+# -----------------------------------------------------------------------------
+# Semantic lens over FACT_SHIPMENT for the CPG supply-chain ontology layer.
+#
+# Ontology mapping:
+#   - Feeds the (Shipment)-[:HANDLED_BY]->(Carrier) edge and the
+#     (Warehouse)-[:SHIPS]->(Destination) relationship in the KG.
+#   - `carrier_performance_score` is the canonical EDGE WEIGHT on HANDLED_BY,
+#     powering alternate-route recommendations.
+#   - `on_time_delivery_pct` is the primary anomaly signal for "delivery delay"
+#     called out in the Multi-Agent architecture.
+#
+# Consumers:
+#   - Anomaly Detection Agent  (delivery delays, transit variance spikes)
+#   - Root Cause Analysis Agent (traces delays back: Shipment -> Carrier / Warehouse)
+#   - Recommendation Agent     (alternate-carrier/route suggestions)
+# =============================================================================
+
+version: 1.1
+source: cpg_supply_chain.gold_fact.fact_shipment
+comment: "Shipment semantic layer: carrier OTD, transit variance, and freight-cost signals feeding the supply-chain knowledge graph."
+
+# ----- Star-schema joins ----------------------------------------------------
+# Note: origin_warehouse_id joins to dim_warehouse with a role-playing alias.
+joins:
+  - name: carrier
+    source: cpg_supply_chain.gold_dim.dim_carrier
+    on: source.carrier_id = carrier.carrier_id
+
+  - name: product
+    source: cpg_supply_chain.gold_dim.dim_product
+    on: source.product_id = product.product_id
+
+  - name: date
+    source: cpg_supply_chain.gold_dim.dim_date
+    on: source.date_id = date.date_id
+
+  - name: origin_warehouse
+    source: cpg_supply_chain.gold_dim.dim_warehouse
+    on: source.origin_warehouse_id = origin_warehouse.warehouse_id
+
+  - name: destination
+    source: cpg_supply_chain.gold_dim.dim_destination
+    on: source.destination_id = destination.destination_id
+
+# ----- Dimensions -----------------------------------------------------------
+dimensions:
+  - name: ship_date
+    expr: date.full_date
+    display_name: "Ship Date"
+    synonyms: ["shipment date", "dispatch date"]
+
+  - name: ship_week
+    expr: DATE_TRUNC('WEEK', date.full_date)
+    display_name: "Ship Week"
+
+  - name: carrier_name
+    expr: carrier.carrier_name
+    display_name: "Carrier"
+    synonyms: ["logistics provider", "shipping carrier", "freight provider"]
+
+  - name: carrier_type
+    expr: carrier.carrier_type
+    display_name: "Carrier Type"
+    synonyms: ["transport mode", "shipping mode"]
+
+  - name: origin_region
+    expr: origin_warehouse.region
+    display_name: "Origin Region"
+
+  - name: destination_region
+    expr: destination.region
+    display_name: "Destination Region"
+
+  - name: destination_type
+    expr: destination.destination_type
+    display_name: "Destination Type"
+
+  - name: product_category
+    expr: product.category
+    display_name: "Category"
+
+  - name: shipment_status
+    expr: source.shipment_status
+    display_name: "Shipment Status"
+
+# ----- Measures: simple -> complex -----------------------------------------
+measures:
+
+  # [1] ADDITIVE --- total freight spend.
+  # Fully additive across carrier, lane, product, and time.
+  - name: total_freight_cost
+    expr: SUM(source.freight_cost)
+    display_name: "Total Freight Cost"
+    comment: "Additive sum of freight_cost. Baseline logistics spend metric; also used as an edge-weight input on origin -> destination lanes in the KG."
+    synonyms: ["logistics cost", "shipping cost", "freight spend", "transport cost"]
+
+  # [2] NON-ADDITIVE --- on-time delivery rate.
+  # Uses FILTER() for conditional aggregation — cleaner than CASE WHEN.
+  # A shipment is on-time if delivery_variance_days <= 0 (early or exactly on-time).
+  # Agent use: PRIMARY "delivery delay" anomaly signal per the architecture.
+  - name: on_time_delivery_pct
+    expr: 100.0 * COUNT(source.shipment_id) FILTER (WHERE source.delivery_variance_days <= 0) / NULLIF(COUNT(source.shipment_id), 0)
+    display_name: "On-Time Delivery %"
+    comment: "Non-additive: percentage of shipments delivered on or before expected date. The canonical OTD KPI — primary anomaly signal on the (Shipment)-[:HANDLED_BY]->(Carrier) edge."
+    synonyms: ["otd", "on time rate", "delivery performance", "on time delivery", "service level"]
+
+  # [4] NON-ADDITIVE / WEIGHTED --- volume-weighted average transit delay.
+  # Weight by quantity_shipped so big shipments dominate the signal.
+  # Positive = late; negative = early. Enables "how late, how often" analysis.
+  - name: weighted_avg_delivery_variance_days
+    expr: SUM(source.delivery_variance_days * source.quantity_shipped) / NULLIF(SUM(source.quantity_shipped), 0)
+    display_name: "Weighted Avg Delivery Variance (days)"
+    comment: "Volume-weighted average variance vs expected transit time. Positive = late on average. Used alongside OTD % to distinguish 'frequently slightly late' from 'rarely very late' carrier failure modes."
+    synonyms: ["transit variance", "delivery delay days", "average lateness", "transit slip"]
+
+  # [5] TIME METRIC (TRAILING WINDOW) --- rolling 30-day OTD trend.
+  # Smoothed OTD signal for the Learning Agent to detect degradation early.
+  - name: rolling_30day_otd_pct
+    expr: 100.0 * COUNT(source.shipment_id) FILTER (WHERE source.delivery_variance_days <= 0) / NULLIF(COUNT(source.shipment_id), 0)
+    display_name: "Rolling 30-Day OTD %"
+    comment: "Trailing 30-day OTD percentage. Window-scoped time metric — used by the Learning Agent to detect carrier performance degradation before it breaches static thresholds."
+    synonyms: ["30 day on time", "rolling otd", "otd trend"]
+    window:
+      - order: ship_date
+        range: trailing 30 day
+        semiadditive: last
+
+  # [6] COMPLEX / COMPOSITE --- Carrier Performance Score (KG edge weight).
+  # Blends OTD rate, transit reliability, damage (receive/ship ratio), and
+  # cost efficiency into a single 0-1 score. This is the canonical edge
+  # weight on (Shipment)-[:HANDLED_BY]->(Carrier).
+  # Agent use: Recommendation Agent uses this to rank alternate carriers on
+  # the same lane during alternate-route suggestion.
+  - name: carrier_performance_score
+    expr: |
+      0.4 * (COUNT(source.shipment_id) FILTER (WHERE source.delivery_variance_days <= 0)
+             / NULLIF(COUNT(source.shipment_id), 0))
+      + 0.3 * GREATEST(0.0, 1.0 - (SUM(ABS(source.delivery_variance_days) * source.quantity_shipped)
+                                    / NULLIF(SUM(source.quantity_shipped) * 5.0, 0)))
+      + 0.2 * (SUM(source.quantity_received) / NULLIF(SUM(source.quantity_shipped), 0))
+      + 0.1 * GREATEST(0.0, 1.0 - (SUM(source.freight_cost)
+                                    / NULLIF(SUM(source.quantity_shipped) * 2.0, 0)))
+    display_name: "Carrier Performance Score"
+    comment: "Composite 0-1 edge weight for (Shipment)-[:HANDLED_BY]->(Carrier): 40% OTD rate, 30% transit-reliability vs 5-day benchmark, 20% received/shipped ratio (damage/loss proxy), 10% freight-cost efficiency vs $2/unit benchmark. Drives alternate-carrier recommendations."
+    synonyms: ["carrier score", "logistics scorecard", "carrier rating", "carrier reliability"]

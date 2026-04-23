@@ -1,0 +1,551 @@
+<mxfile host="app.diagrams.net" modified="2026-04-16T00:00:00.000Z" agent="Claude" version="24.0.0">
+  <diagram id="CPG_SC_ARCH" name="CPG Supply Chain Multi-Agent Architecture">
+    <mxGraphModel dx="2400" dy="1600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2400" pageHeight="1700" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- TITLE -->
+        <mxCell id="title" value="CPG Supply Chain Multi-Agent Graph Intelligence Architecture&#10;Ontology-Driven Semantic Layer with Knowledge Graph &amp; Agentic Reasoning" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#1A1A2E;" vertex="1" parent="1">
+          <mxGeometry x="400" y="10" width="1600" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- LAYER 1: SOURCE SYSTEMS -->
+        <!-- ============================================ -->
+        <mxCell id="L1_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#9E9E9E;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="90" width="2320" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="L1_label" value="SOURCE SYSTEMS" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=13;fontStyle=1;fontColor=#424242;" vertex="1" parent="1">
+          <mxGeometry x="55" y="100" width="200" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="src_erp" value="SAP / Oracle ERP&#10;Procurement, Manufacturing" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="70" y="130" width="160" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="src_wms" value="WMS / TMS&#10;Warehouse, Shipments" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="130" width="160" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="src_mes" value="MES / SCADA&#10;Plant telemetry, OEE" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="430" y="130" width="160" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="src_pos" value="Retail POS / EDI 852&#10;Demand signals" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="610" y="130" width="160" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="src_crm" value="Salesforce CRM&#10;Customer orders" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="790" y="130" width="160" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="src_edi" value="EDI 856 / 810&#10;Vendor ASN &amp; invoices" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="970" y="130" width="160" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="src_iot" value="IoT / Sensors&#10;Cold chain, RFID" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1150" y="130" width="160" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="src_weather" value="External: Weather&#10;NOAA, OpenWeather" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1330" y="130" width="160" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="src_commodity" value="Commodity Prices&#10;Pulp, resin, energy" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1510" y="130" width="160" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="src_promo" value="Trade Promo Mgmt&#10;Events, displays" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1690" y="130" width="160" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="src_syndicated" value="Nielsen / IRI&#10;Syndicated market data" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1870" y="130" width="160" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="src_news" value="News / Geopolitical&#10;Port strikes, tariffs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="2050" y="130" width="160" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- LAYER 2: INGESTION -->
+        <!-- ============================================ -->
+        <mxCell id="L2_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEBEE;strokeColor=#C62828;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="220" width="2320" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="L2_label" value="DATA INGESTION LAYER" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=13;fontStyle=1;fontColor=#C62828;" vertex="1" parent="1">
+          <mxGeometry x="55" y="230" width="200" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ing_adf" value="Azure Data Factory / Fivetran&#10;Batch CDC from ERP/WMS/MES" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#C62828;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="70" y="265" width="260" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="ing_kafka" value="Kafka / Event Hubs&#10;Streaming IoT, POS, sensor feeds" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#C62828;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="350" y="265" width="260" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="ing_autoloader" value="Databricks Auto Loader&#10;Schema inference, incremental files" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#C62828;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="630" y="265" width="260" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="ing_api" value="REST / GraphQL APIs&#10;Weather, commodity, news" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#C62828;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="910" y="265" width="260" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="ing_dlt" value="Delta Live Tables (DLT)&#10;Declarative pipelines + expectations" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#C62828;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1190" y="265" width="260" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="ing_cdc" value="CDC &amp; SCD Type 2&#10;Vendor/Customer/Product history" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#C62828;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1470" y="265" width="260" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="ing_unity" value="Unity Catalog&#10;Central governance, lineage, RBAC" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8BBD0;strokeColor=#AD1457;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1750" y="265" width="280" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="ing_dq" value="Great Expectations / Soda&#10;DQ gates &amp; freshness SLAs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8BBD0;strokeColor=#AD1457;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="2050" y="265" width="290" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- LAYER 3: MEDALLION (BRONZE / SILVER / GOLD) -->
+        <!-- ============================================ -->
+        <mxCell id="L3_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#F57F17;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="360" width="2320" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="L3_label" value="LAKEHOUSE LAYER — DATABRICKS MEDALLION ARCHITECTURE (Delta Lake on Unity Catalog)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=13;fontStyle=1;fontColor=#E65100;" vertex="1" parent="1">
+          <mxGeometry x="55" y="370" width="900" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Bronze -->
+        <mxCell id="bronze_box" value="BRONZE — RAW" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#8D6E63;strokeColor=#4E342E;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="70" y="405" width="700" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="bronze_1" value="bronze.erp_procurement_raw" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFEBE9;strokeColor=#8D6E63;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="70" y="440" width="170" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="bronze_2" value="bronze.mes_manufacturing_raw" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFEBE9;strokeColor=#8D6E63;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="245" y="440" width="170" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="bronze_3" value="bronze.wms_inventory_raw" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFEBE9;strokeColor=#8D6E63;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="420" y="440" width="170" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="bronze_4" value="bronze.tms_shipment_raw" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFEBE9;strokeColor=#8D6E63;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="595" y="440" width="170" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="bronze_5" value="bronze.pos_demand_raw" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFEBE9;strokeColor=#8D6E63;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="70" y="473" width="170" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="bronze_6" value="bronze.iot_telemetry_raw" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFEBE9;strokeColor=#8D6E63;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="245" y="473" width="170" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="bronze_7" value="bronze.external_signals_raw" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFEBE9;strokeColor=#8D6E63;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="420" y="473" width="170" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="bronze_8" value="bronze.edi_transactions_raw" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFEBE9;strokeColor=#8D6E63;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="595" y="473" width="170" height="28" as="geometry" />
+        </mxCell>
+
+        <!-- Silver -->
+        <mxCell id="silver_box" value="SILVER — CLEANSED &amp; CONFORMED" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#90A4AE;strokeColor=#37474F;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="790" y="405" width="700" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="silver_1" value="silver.procurement_cleansed" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECEFF1;strokeColor=#546E7A;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="790" y="440" width="170" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="silver_2" value="silver.manufacturing_cleansed" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECEFF1;strokeColor=#546E7A;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="965" y="440" width="170" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="silver_3" value="silver.inventory_cleansed" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECEFF1;strokeColor=#546E7A;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="440" width="170" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="silver_4" value="silver.shipment_cleansed" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECEFF1;strokeColor=#546E7A;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1315" y="440" width="170" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="silver_5" value="silver.demand_cleansed" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECEFF1;strokeColor=#546E7A;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="790" y="473" width="170" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="silver_6" value="silver.scd2_dimensions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECEFF1;strokeColor=#546E7A;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="965" y="473" width="170" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="silver_7" value="silver.promotion_events" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECEFF1;strokeColor=#546E7A;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="473" width="170" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="silver_8" value="silver.external_enriched" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECEFF1;strokeColor=#546E7A;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1315" y="473" width="170" height="28" as="geometry" />
+        </mxCell>
+
+        <!-- Gold -->
+        <mxCell id="gold_box" value="GOLD — STAR SCHEMA (BITEMPORAL)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F9A825;strokeColor=#F57F17;fontColor=#212121;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1510" y="405" width="830" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="gold_facts" value="FACTS:&#10;fact_procurement, fact_manufacturing,&#10;fact_inventory, fact_shipment, fact_sales_demand" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF59D;strokeColor=#F9A825;fontSize=9;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1510" y="440" width="200" height="61" as="geometry" />
+        </mxCell>
+        <mxCell id="gold_dims" value="DIMENSIONS (SCD2):&#10;dim_vendor, dim_plant, dim_product,&#10;dim_warehouse, dim_customer, dim_destination,&#10;dim_carrier, dim_shift, dim_date" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF59D;strokeColor=#F9A825;fontSize=9;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1715" y="440" width="200" height="61" as="geometry" />
+        </mxCell>
+        <mxCell id="gold_new" value="NEW DIMENSIONS:&#10;dim_promotion, dim_weather_event,&#10;dim_bom (Bill of Materials),&#10;dim_disruption_event" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF59D;strokeColor=#F9A825;fontSize=9;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1920" y="440" width="200" height="61" as="geometry" />
+        </mxCell>
+        <mxCell id="gold_temporal" value="BITEMPORAL METADATA:&#10;valid_from, valid_to,&#10;effective_ts, recorded_ts&#10;(As-of reasoning)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE082;strokeColor=#FF8F00;fontSize=9;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="2125" y="440" width="210" height="61" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- LAYER 4: SEMANTIC & ONTOLOGY LAYER -->
+        <!-- ============================================ -->
+        <mxCell id="L4_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="550" width="2320" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="L4_label" value="SEMANTIC &amp; ONTOLOGY LAYER — Unity Catalog Business Semantics" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=13;fontStyle=1;fontColor=#1B5E20;" vertex="1" parent="1">
+          <mxGeometry x="55" y="560" width="900" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Metric Layer -->
+        <mxCell id="sem_metric_box" value="LAYER A — METRIC VIEWS (Databricks UC Business Semantics)&#10;Governed KPIs with agent metadata (synonyms, display names, formats)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#2E7D32;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="595" width="760" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="mv_procurement" value="Procurement Metrics&#10;• Vendor Fill Rate&#10;• Supplier OTD%&#10;• PO Cycle Time&#10;• Cost Variance" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;fontSize=8;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="60" y="645" width="145" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="mv_mfg" value="Manufacturing Metrics&#10;• OEE&#10;• First-Pass Yield&#10;• Schedule Adherence&#10;• Downtime %" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;fontSize=8;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="210" y="645" width="145" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="mv_inv" value="Inventory Metrics&#10;• Days of Supply&#10;• Inventory Turns&#10;• Stockout Rate&#10;• Weeks of Cover" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;fontSize=8;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="360" y="645" width="145" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="mv_log" value="Logistics Metrics&#10;• OTIF%&#10;• Transit Variance&#10;• Freight $ / unit&#10;• Perfect Order Rate" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;fontSize=8;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="510" y="645" width="145" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="mv_comm" value="Commercial Metrics&#10;• Case Fill Rate&#10;• Line Fill Rate&#10;• Lost Sales $&#10;• Revenue at Risk" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;fontSize=8;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="660" y="645" width="160" height="72" as="geometry" />
+        </mxCell>
+
+        <mxCell id="mv_note" value="~40 Metric Views&#10;Synonyms drive agent accuracy&#10;Exposed via Genie &amp; MCP" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=8;fontStyle=2;fontColor=#2E7D32;" vertex="1" parent="1">
+          <mxGeometry x="60" y="722" width="760" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Entity/Relationship Layer -->
+        <mxCell id="sem_entity_box" value="LAYER B — ENTITY &amp; RELATIONSHIP GRAPH (Neo4j + UC Tags)&#10;Nodes, edges, lineage, business meaning tags" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#2E7D32;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="830" y="595" width="760" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="neo4j_nodes" value="NODE TYPES&#10;Vendor, Plant, Product,&#10;Warehouse, Carrier,&#10;Customer, Destination,&#10;Material, Shipment,&#10;PurchaseOrder, Promotion" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;fontSize=8;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="830" y="645" width="175" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="neo4j_rels" value="RELATIONSHIP TYPES&#10;SUPPLIES, PRODUCES,&#10;CONTAINS (BOM),&#10;HAS_STOCK, SHIPS,&#10;HANDLED_BY, DEMANDS,&#10;SERVES_REGION" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;fontSize=8;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="1010" y="645" width="175" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="neo4j_props" value="EDGE PROPERTIES&#10;(Time-bound)&#10;valid_from, valid_to,&#10;lead_time, cost, reliability,&#10;on_time_pct, defect_rate" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;fontSize=8;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="1190" y="645" width="175" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="neo4j_gds" value="GRAPH ALGORITHMS&#10;(Neo4j GDS)&#10;• Centrality (critical vendors)&#10;• Shortest path&#10;• Community detection&#10;• Node embeddings (Node2Vec)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;fontSize=8;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="1370" y="645" width="215" height="72" as="geometry" />
+        </mxCell>
+
+        <mxCell id="graph_note" value="Bitemporal edges enable &quot;as-of&quot; traversals&#10;Embeddings power similarity-based recommendations" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=8;fontStyle=2;fontColor=#2E7D32;" vertex="1" parent="1">
+          <mxGeometry x="830" y="722" width="755" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Conceptual/Taxonomy Layer -->
+        <mxCell id="sem_onto_box" value="LAYER C — CONCEPTUAL ONTOLOGY (Lakebase / UC Tables + MCP)&#10;Business taxonomies, anomaly types, causal patterns, playbooks" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#2E7D32;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1600" y="595" width="750" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="onto_anomaly" value="Anomaly Taxonomy&#10;• Supply Disruption&#10;• Demand Spike&#10;• Quality Failure&#10;• Logistics Delay" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;fontSize=8;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="1600" y="645" width="175" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="onto_causal" value="Causal Pattern Library&#10;• Port strike → delay&#10;• Promo → demand spike&#10;• Weather → transit risk&#10;• Supplier tier → reliability" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;fontSize=8;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="1780" y="645" width="185" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="onto_playbook" value="Remediation Playbooks&#10;• Alt vendor routing&#10;• Inventory rebalance&#10;• Expedite freight&#10;• Demand shaping" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;fontSize=8;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="1970" y="645" width="175" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="onto_kpi" value="KPI Thresholds&#10;Business rules per&#10;category / region&#10;Adaptive over time" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;fontSize=8;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="2150" y="645" width="195" height="72" as="geometry" />
+        </mxCell>
+
+        <mxCell id="onto_note" value="Governed via UC tags; consumed by agents through MCP UC Functions" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=8;fontStyle=2;fontColor=#2E7D32;" vertex="1" parent="1">
+          <mxGeometry x="1600" y="722" width="750" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- LAYER 5: FEATURE STORE & GRAPH DB -->
+        <!-- ============================================ -->
+        <mxCell id="L5_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F7FA;strokeColor=#00695C;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="780" width="2320" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="L5_label" value="SIGNAL, FEATURE &amp; GRAPH PERSISTENCE LAYER" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=13;fontStyle=1;fontColor=#00695C;" vertex="1" parent="1">
+          <mxGeometry x="55" y="790" width="500" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="fs_signals" value="ANOMALY SIGNALS&#10;• Delivery delays, stockouts&#10;• Defect rate spikes&#10;• Vendor unreliability trends&#10;• Demand volatility&#10;• Lead time drift" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B2DFDB;strokeColor=#00695C;fontSize=9;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="60" y="820" width="250" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="fs_features" value="GRAPH FEATURE ENGINEERING&#10;• Vendor centrality scores&#10;• Plant bottleneck detection&#10;• Shortest alternate paths&#10;• Node similarity (Vendor2Vec)&#10;• Community cluster labels" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B2DFDB;strokeColor=#00695C;fontSize=9;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="330" y="820" width="260" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="fs_store" value="DATABRICKS FEATURE STORE&#10;(online + offline)&#10;• Real-time features for agents&#10;• Historical features for training&#10;• Point-in-time correctness" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#80CBC4;strokeColor=#00695C;fontSize=9;align=left;spacingLeft=6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="610" y="820" width="260" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="fs_vector" value="DATABRICKS VECTOR SEARCH&#10;• Product/Vendor/Customer embeddings&#10;• Playbook semantic retrieval&#10;• Past-incident similarity search&#10;• RAG for agent reasoning" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#80CBC4;strokeColor=#00695C;fontSize=9;align=left;spacingLeft=6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="890" y="820" width="280" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="fs_neo4j" value="NEO4J KNOWLEDGE GRAPH&#10;(Aura Enterprise)&#10;• Indexed node/edge types&#10;• Bitemporal constraints&#10;• GDS analytics plugin&#10;• APOC procedures" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4DB6AC;strokeColor=#00695C;fontColor=#FFFFFF;fontSize=9;align=left;spacingLeft=6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1190" y="820" width="260" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="fs_lakebase" value="LAKEBASE (Postgres)&#10;• Agent state &amp; memory&#10;• Recommendation history&#10;• Feedback &amp; learning loop&#10;• Low-latency transactional ops" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#80CBC4;strokeColor=#00695C;fontSize=9;align=left;spacingLeft=6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1470" y="820" width="260" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="fs_mlflow" value="MLFLOW MODEL REGISTRY&#10;• Anomaly detection models&#10;• Forecasting models&#10;• Scoring models (vendor risk)&#10;• Versioning, A/B, promotion" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#80CBC4;strokeColor=#00695C;fontSize=9;align=left;spacingLeft=6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1750" y="820" width="260" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="fs_obs" value="OBSERVABILITY&#10;(OpenLineage, Unity Catalog)&#10;• End-to-end lineage&#10;• Freshness monitoring&#10;• Cost attribution" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#80CBC4;strokeColor=#00695C;fontSize=9;align=left;spacingLeft=6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="2030" y="820" width="310" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- LAYER 6: MULTI-AGENT LAYER -->
+        <!-- ============================================ -->
+        <mxCell id="L6_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#6A1B9A;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="940" width="2320" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="L6_label" value="MULTI-AGENT REASONING LAYER — LangGraph Orchestrator + Specialized Agents (Claude/GPT-4 via Databricks Model Serving)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=13;fontStyle=1;fontColor=#6A1B9A;" vertex="1" parent="1">
+          <mxGeometry x="55" y="950" width="1400" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Coordinator -->
+        <mxCell id="agent_coord" value="🧭 AGENT COORDINATOR / PLANNER&#10;(LangGraph StateGraph)&#10;Routes user questions &amp; events&#10;to the right agent sequence.&#10;Handles reactive + scheduled flows." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#CE93D8;strokeColor=#4A148C;fontSize=10;fontStyle=1;fontColor=#4A148C;" vertex="1" parent="1">
+          <mxGeometry x="60" y="985" width="240" height="180" as="geometry" />
+        </mxCell>
+
+        <!-- Anomaly Agent -->
+        <mxCell id="agent_anom" value="🔍 ANOMALY DETECTION AGENT&#10;&#10;Inputs: Feature Store + Metric Views&#10;&#10;• Monitors KPI drift &amp; thresholds&#10;• Statistical + ML-based detection&#10;• Isolates from promo/seasonality&#10;• Publishes to event bus" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#6A1B9A;fontSize=9;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="320" y="985" width="230" height="180" as="geometry" />
+        </mxCell>
+
+        <!-- Root Cause Agent -->
+        <mxCell id="agent_rca" value="🧬 ROOT CAUSE AGENT&#10;&#10;Inputs: Graph + Metrics + Ontology&#10;&#10;• Upstream graph traversal&#10;  [Anomaly]→Shipment→Warehouse&#10;  →Plant→Product→Vendor&#10;• Weighted scoring (not pure LLM)&#10;• Bitemporal &quot;as-of&quot; analysis&#10;• Matches causal patterns" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#6A1B9A;fontSize=9;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="570" y="985" width="230" height="180" as="geometry" />
+        </mxCell>
+
+        <!-- Impact Analysis Agent -->
+        <mxCell id="agent_impact" value="💥 IMPACT ANALYSIS AGENT&#10;&#10;Inputs: Graph + BOM + Demand&#10;&#10;• Downstream graph traversal&#10;  [Anomaly]→Shipment→Throughput&#10;  →Product→Customer→Revenue&#10;• Multi-hop via BOM&#10;• Quantifies $ and SLA impact&#10;• Identifies affected SKUs/customers" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#6A1B9A;fontSize=9;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="820" y="985" width="230" height="180" as="geometry" />
+        </mxCell>
+
+        <!-- Recommendation Agent -->
+        <mxCell id="agent_rec" value="💡 RECOMMENDATION AGENT&#10;&#10;Inputs: Playbooks + Vector Search + Graph&#10;&#10;• Suggests alternate vendors/routes&#10;• Inventory rebalancing options&#10;• Uses graph + heuristics + LLM&#10;• RAG over past-incident library&#10;• Generates ranked action list&#10;• Cost/benefit quantification" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#6A1B9A;fontSize=9;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="1070" y="985" width="230" height="180" as="geometry" />
+        </mxCell>
+
+        <!-- Simulation Agent (NEW) -->
+        <mxCell id="agent_sim" value="🧪 SIMULATION / WHAT-IF AGENT&#10;&#10;Inputs: Graph + Digital Twin&#10;&#10;• Evaluates recommendations&#10;  before execution&#10;• Monte Carlo on scenarios&#10;• Digital twin of supply network&#10;• Stress-tests resilience&#10;• Quantifies risk &amp; confidence" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#6A1B9A;fontSize=9;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="1320" y="985" width="230" height="180" as="geometry" />
+        </mxCell>
+
+        <!-- HITL Agent (NEW) -->
+        <mxCell id="agent_hitl" value="👤 HUMAN-IN-THE-LOOP GATE&#10;&#10;Inputs: Recommendation + Impact + Risk&#10;&#10;• Policy-based auto-approve&#10;  (low-value, high-confidence)&#10;• Escalation to planner for&#10;  high-$ or cross-region actions&#10;• Slack / Teams approval UX&#10;• Audit trail of every decision" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F48FB1;strokeColor=#880E4F;fontSize=9;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="1570" y="985" width="230" height="180" as="geometry" />
+        </mxCell>
+
+        <!-- Learning Agent -->
+        <mxCell id="agent_learn" value="🧠 LEARNING AGENT&#10;&#10;Inputs: Outcomes + Feedback&#10;&#10;• Tracks recommendation efficacy&#10;• Updates scoring weights&#10;• Adapts thresholds over time&#10;• Retrains embeddings&#10;• Publishes updated models&#10;  to MLflow Registry" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#6A1B9A;fontSize=9;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="1820" y="985" width="230" height="180" as="geometry" />
+        </mxCell>
+
+        <!-- Guardrails (NEW) -->
+        <mxCell id="agent_guard" value="🛡️ GUARDRAILS &amp; EVAL&#10;&#10;• Prompt injection defense&#10;• PII redaction&#10;• Hallucination checks vs.&#10;  Metric View ground truth&#10;• Citation-required responses&#10;• Continuous eval harness&#10;  (LangSmith / MLflow Eval)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#B71C1C;fontSize=9;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="2070" y="985" width="270" height="180" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- LAYER 7: ORCHESTRATION & MCP -->
+        <!-- ============================================ -->
+        <mxCell id="L7_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1200" width="2320" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="L7_label" value="ORCHESTRATION &amp; MCP (MODEL CONTEXT PROTOCOL) LAYER" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=13;fontStyle=1;fontColor=#E65100;" vertex="1" parent="1">
+          <mxGeometry x="55" y="1210" width="700" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="orch_airflow" value="⏱️ AIRFLOW / DATABRICKS WORKFLOWS&#10;Scheduled batch: daily DQ runs, weekly&#10;model retraining, KPI refresh cadence" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE0B2;strokeColor=#E65100;fontSize=9;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1245" width="310" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="orch_langgraph" value="🔀 LANGGRAPH STATE MACHINE&#10;Event-driven agent orchestration:&#10;Anomaly → RCA → Impact → Recommend → HITL" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE0B2;strokeColor=#E65100;fontSize=9;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="390" y="1245" width="340" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="orch_mcp" value="🔌 DATABRICKS MANAGED MCP SERVERS&#10;Genie (Metric Views) • UC Functions (business logic)&#10;Vector Search • Neo4j MCP tool • Playbook store" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCC80;strokeColor=#E65100;fontSize=9;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="750" y="1245" width="400" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="orch_events" value="📢 EVENT BUS (Kafka / Event Hubs)&#10;Anomaly detected, Recommendation issued,&#10;Action approved/rejected, Outcome recorded" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE0B2;strokeColor=#E65100;fontSize=9;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1170" y="1245" width="340" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="orch_serving" value="🤖 DATABRICKS MODEL SERVING&#10;Foundation models (Claude, Llama, GPT-4)&#10;Custom fine-tuned models, low-latency inference" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE0B2;strokeColor=#E65100;fontSize=9;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1530" y="1245" width="360" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="orch_scheduler" value="🔄 FEEDBACK SCHEDULER&#10;Closes learning loop:&#10;outcomes → learning agent → models" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE0B2;strokeColor=#E65100;fontSize=9;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1910" y="1245" width="430" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- LAYER 8: API & SERVICE -->
+        <!-- ============================================ -->
+        <mxCell id="L8_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#283593;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1330" width="2320" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="L8_label" value="API &amp; SERVICE LAYER" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=13;fontStyle=1;fontColor=#283593;" vertex="1" parent="1">
+          <mxGeometry x="55" y="1340" width="400" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="api_fastapi" value="FastAPI / Python Backend&#10;Root cause reports, recs, insights" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C5CAE9;strokeColor=#283593;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1370" width="280" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="api_graphql" value="GraphQL Gateway&#10;Flexible queries for frontends" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C5CAE9;strokeColor=#283593;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="360" y="1370" width="260" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="api_authz" value="Auth (Okta/Entra ID) + RBAC&#10;Row/column-level security via UC" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C5CAE9;strokeColor=#283593;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="640" y="1370" width="280" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="api_audit" value="Audit Log Service&#10;Immutable record: prompt, response, action" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C5CAE9;strokeColor=#283593;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="940" y="1370" width="320" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="api_caching" value="Redis Cache&#10;Hot query results, session state" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C5CAE9;strokeColor=#283593;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="1370" width="260" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="api_ratelimit" value="Rate Limiting &amp; Quotas&#10;Per-user &amp; per-agent throttles" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C5CAE9;strokeColor=#283593;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1560" y="1370" width="260" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="api_webhook" value="Webhook Dispatcher&#10;ERP/TMS write-backs (pending approval)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C5CAE9;strokeColor=#283593;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1840" y="1370" width="500" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- LAYER 9: CONSUMPTION -->
+        <!-- ============================================ -->
+        <mxCell id="L9_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2F1;strokeColor=#00695C;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1435" width="2320" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="L9_label" value="VISUALIZATION &amp; CONSUMPTION LAYER" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=13;fontStyle=1;fontColor=#00695C;" vertex="1" parent="1">
+          <mxGeometry x="55" y="1445" width="400" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cons_bi" value="📊 AI/BI Dashboards&#10;Power BI, Databricks AI/BI&#10;KPI monitoring, exec views" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B2DFDB;strokeColor=#00695C;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1475" width="260" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="cons_genie" value="💬 Databricks Genie&#10;Natural language querying&#10;over Metric Views" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B2DFDB;strokeColor=#00695C;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="340" y="1475" width="260" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="cons_neo4j" value="🕸️ Neo4j Bloom&#10;Interactive graph&#10;exploration &amp; RCA viz" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B2DFDB;strokeColor=#00695C;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="620" y="1475" width="260" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="cons_planner" value="📱 Planner Workbench (React)&#10;Recommendation review,&#10;approve/reject workflows" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B2DFDB;strokeColor=#00695C;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="900" y="1475" width="260" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="cons_slack" value="💬 Slack / Teams Bot&#10;Proactive alerts &amp; inline&#10;approval actions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B2DFDB;strokeColor=#00695C;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="1475" width="260" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="cons_mobile" value="📲 Mobile App&#10;Field ops &amp; on-call&#10;supply chain managers" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B2DFDB;strokeColor=#00695C;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1460" y="1475" width="260" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="cons_email" value="📧 Email Digest&#10;Daily / weekly supply&#10;chain health reports" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B2DFDB;strokeColor=#00695C;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1740" y="1475" width="260" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="cons_erp" value="⚙️ ERP/TMS Write-back&#10;Approved actions flow back&#10;to source systems" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B2DFDB;strokeColor=#00695C;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="2020" y="1475" width="320" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- CROSS-CUTTING: GOVERNANCE & SECURITY (side panel) -->
+        <!-- ============================================ -->
+        <mxCell id="gov_panel" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE4EC;strokeColor=#AD1457;dashed=0;opacity=90;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1560" width="2320" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="gov_label" value="CROSS-CUTTING: GOVERNANCE, SECURITY, COMPLIANCE &amp; FINOPS" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=13;fontStyle=1;fontColor=#AD1457;" vertex="1" parent="1">
+          <mxGeometry x="55" y="1570" width="700" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="gov_uc" value="Unity Catalog&#10;Data governance, RBAC,&#10;row/column-level security,&#10;tag-based access" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8BBD0;strokeColor=#AD1457;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1600" width="260" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="gov_lineage" value="OpenLineage&#10;End-to-end lineage:&#10;source → metric → rec → action" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8BBD0;strokeColor=#AD1457;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="340" y="1600" width="260" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="gov_pii" value="PII &amp; Data Classification&#10;Automated detection,&#10;tokenization &amp; masking" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8BBD0;strokeColor=#AD1457;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="620" y="1600" width="260" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="gov_audit" value="Immutable Audit Trail&#10;Every agent decision logged&#10;with reasoning &amp; inputs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8BBD0;strokeColor=#AD1457;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="900" y="1600" width="260" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="gov_compliance" value="Compliance&#10;SOX, GDPR, CCPA,&#10;ISO 27001 alignment" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8BBD0;strokeColor=#AD1457;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="1600" width="260" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="gov_secret" value="Secrets Mgmt&#10;Azure Key Vault /&#10;Databricks Secret Scopes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8BBD0;strokeColor=#AD1457;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1460" y="1600" width="260" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="gov_finops" value="FinOps&#10;Cost tracking per agent / per query,&#10;token usage budgets,&#10;cluster right-sizing" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8BBD0;strokeColor=#AD1457;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1740" y="1600" width="600" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ========================================================= -->
+        <!-- FLOW ARROWS (simplified — main flow only, no overload) -->
+        <!-- ========================================================= -->
+
+        <!-- Sources → Ingestion -->
+        <mxCell id="flow1" style="endArrow=classic;html=1;strokeColor=#424242;strokeWidth=2;" edge="1" parent="1" source="L1_bg" target="L2_bg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Ingestion → Medallion -->
+        <mxCell id="flow2" style="endArrow=classic;html=1;strokeColor=#424242;strokeWidth=2;" edge="1" parent="1" source="L2_bg" target="L3_bg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Medallion → Semantic -->
+        <mxCell id="flow3" style="endArrow=classic;html=1;strokeColor=#2E7D32;strokeWidth=2;" edge="1" parent="1" source="L3_bg" target="L4_bg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Semantic → Feature/Graph -->
+        <mxCell id="flow4" style="endArrow=classic;html=1;strokeColor=#00695C;strokeWidth=2;" edge="1" parent="1" source="L4_bg" target="L5_bg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Feature → Agents -->
+        <mxCell id="flow5" style="endArrow=classic;html=1;strokeColor=#6A1B9A;strokeWidth=2;" edge="1" parent="1" source="L5_bg" target="L6_bg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Agents → Orchestration -->
+        <mxCell id="flow6" style="endArrow=classic;html=1;strokeColor=#E65100;strokeWidth=2;" edge="1" parent="1" source="L6_bg" target="L7_bg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Orchestration → API -->
+        <mxCell id="flow7" style="endArrow=classic;html=1;strokeColor=#283593;strokeWidth=2;" edge="1" parent="1" source="L7_bg" target="L8_bg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- API → Consumption -->
+        <mxCell id="flow8" style="endArrow=classic;html=1;strokeColor=#00695C;strokeWidth=2;" edge="1" parent="1" source="L8_bg" target="L9_bg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Feedback loop: Consumption → Agents (dashed) -->
+        <mxCell id="flow_feedback" style="endArrow=classic;html=1;strokeColor=#AD1457;strokeWidth=2;dashed=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="L9_bg" target="L6_bg">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2380" y="1505" />
+              <mxPoint x="2380" y="1060" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow_feedback_lbl" value="Feedback: outcomes / approvals / overrides" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;fontSize=9;fontStyle=2;fontColor=#AD1457;" vertex="1" parent="1">
+          <mxGeometry x="2200" y="1280" width="210" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Legend -->
+        <mxCell id="legend_box" value="LEGEND&#10;━━━ solid = primary data / control flow&#10;─ ─ ─ dashed = feedback / learning loop&#10;🧭 coordinator | 🔍 detection | 🧬 root cause | 💥 impact | 💡 recommend | 🧪 simulate | 👤 HITL | 🧠 learn | 🛡️ guardrails" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#616161;fontSize=9;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1680" width="2320" height="60" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
