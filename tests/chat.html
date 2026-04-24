@@ -1,0 +1,240 @@
+<!-- chatbox.html — open in browser, no server needed -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CPG Supply Chain AI Agent</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      width: 780px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+      display: flex;
+      flex-direction: column;
+      height: 85vh;
+    }
+    .header {
+      padding: 18px 24px;
+      border-bottom: 1px solid #e5e7eb;
+      background: #1a1a2e;
+      border-radius: 12px 12px 0 0;
+      color: white;
+    }
+    .header h2 { font-size: 16px; font-weight: 600; }
+    .header p  { font-size: 12px; opacity: 0.7; margin-top: 2px; }
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .message { max-width: 85%; }
+    .message.user   { align-self: flex-end; }
+    .message.agent  { align-self: flex-start; }
+    .bubble {
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+    .user  .bubble { background: #2563eb; color: white; border-radius: 12px 12px 2px 12px; }
+    .agent .bubble { background: #f3f4f6; color: #111; border-radius: 12px 12px 12px 2px; }
+    .meta { font-size: 11px; color: #9ca3af; margin-top: 4px; }
+    .cypher-toggle {
+      font-size: 11px;
+      color: #6366f1;
+      cursor: pointer;
+      margin-top: 4px;
+      text-decoration: underline;
+    }
+    .cypher-block {
+      display: none;
+      margin-top: 8px;
+      background: #1e1e2e;
+      color: #a6e3a1;
+      font-family: monospace;
+      font-size: 12px;
+      padding: 10px;
+      border-radius: 6px;
+      white-space: pre-wrap;
+    }
+    .input-area {
+      padding: 16px;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      gap: 10px;
+    }
+    .suggestions {
+      padding: 0 16px 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .chip {
+      background: #eff6ff;
+      color: #2563eb;
+      border: 1px solid #bfdbfe;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .chip:hover { background: #dbeafe; }
+    input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+    }
+    input:focus { border-color: #2563eb; }
+    button {
+      padding: 10px 20px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    button:disabled { background: #93c5fd; cursor: not-allowed; }
+    .loading .bubble { color: #9ca3af; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h2>🏭 CPG Supply Chain AI Agent</h2>
+    <p>Ask questions about vendors, inventory, manufacturing, shipments, and customers</p>
+  </div>
+
+  <div class="suggestions" id="suggestions">
+    <span class="chip" onclick="ask(this.innerText)">Which vendors are at high risk?</span>
+    <span class="chip" onclick="ask(this.innerText)">Which warehouses have stockouts?</span>
+    <span class="chip" onclick="ask(this.innerText)">Which plants are over capacity?</span>
+    <span class="chip" onclick="ask(this.innerText)">Show me actionable vendor alternatives</span>
+    <span class="chip" onclick="ask(this.innerText)">Which VIP customers are at risk?</span>
+  <div style="padding: 8px 16px; display:flex; align-items:center; gap:10px;
+            border-bottom: 1px solid #e5e7eb; background: #fafafa;">
+  <span style="font-size:12px; color:#6b7280;">Mode:</span>
+  <label style="font-size:12px; cursor:pointer;">
+    <input type="radio" name="mode" value="ask" checked
+           onchange="setMode(this.value)">
+    Graph only
+  </label>
+  <label style="font-size:12px; cursor:pointer;">
+    <input type="radio" name="mode" value="ask-with-docs"
+           onchange="setMode(this.value)">
+    Graph + Documents (GraphRAG)
+  </label>
+</div>
+  </div>
+
+  <div class="messages" id="messages"></div>
+
+  <div class="input-area">
+    <input id="input" type="text" placeholder="Ask about your supply chain..." 
+           onkeydown="if(event.key==='Enter') sendQuestion()" />
+    <button id="btn" onclick="sendQuestion()">Ask</button>
+  </div>
+</div>
+
+<script>
+  const API = "http://localhost:8000/api/v1/ask";
+  let msgId = 0;
+
+  function ask(text) {
+    document.getElementById("input").value = text;
+    sendQuestion();
+  }
+
+  async function sendQuestion() {
+    const input = document.getElementById("input");
+    const btn   = document.getElementById("btn");
+    const question = input.value.trim();
+    if (!question) return;
+
+    input.value = "";
+    btn.disabled = true;
+    addMessage("user", question);
+    const loadingId = addMessage("agent", "Thinking...", true);
+
+    try {
+      const res = await fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question, show_cypher: true })
+      });
+      const data = await res.json();
+      updateMessage(loadingId, data.answer, data.cypher_query, data.result_count);
+    } catch (e) {
+      updateMessage(loadingId, "Error connecting to the agent. Is the server running?");
+    }
+
+    btn.disabled = false;
+  }
+
+  function addMessage(role, text, loading=false) {
+    const id = `msg-${msgId++}`;
+    const msgs = document.getElementById("messages");
+    msgs.innerHTML += `
+      <div class="message ${role} ${loading ? 'loading' : ''}" id="${id}">
+        <div class="bubble">${text}</div>
+      </div>`;
+    msgs.scrollTop = msgs.scrollHeight;
+    return id;
+  }
+
+  function updateMessage(id, text, cypher=null, count=null) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove("loading");
+    let html = `<div class="bubble">${text}</div>`;
+    if (count !== null) {
+      html += `<div class="meta">${count} record(s) found</div>`;
+    }
+    if (cypher) {
+      const cid = `cypher-${id}`;
+      html += `<div class="cypher-toggle" onclick="toggleCypher('${cid}')">
+                 Show generated Cypher ↓</div>
+               <div class="cypher-block" id="${cid}">${cypher}</div>`;
+    }
+    el.innerHTML = html;
+    document.getElementById("messages").scrollTop = 99999;
+  }
+
+  function toggleCypher(id) {
+    const el = document.getElementById(id);
+    el.style.display = el.style.display === "block" ? "none" : "block";
+  }
+
+    // Add this to the existing <script> block in chatbox.html
+  let currentMode = "ask";   // "ask" or "ask-with-docs"
+
+  function setMode(mode) {
+    currentMode = mode;
+  }
+
+  // Update sendQuestion() to use currentMode:
+  // Change:  const res = await fetch(`${BASE_URL}/ask`, ...
+  // To:      const res = await fetch(`${BASE_URL}/${currentMode}`, ...
+  // and for ask-with-docs add: show_doc_sources: true to the body
+  
+</script>
+</body>
+</html>
