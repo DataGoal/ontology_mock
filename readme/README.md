@@ -14,6 +14,141 @@ Databricks Delta Tables          Neo4j Knowledge Graph
 
 ---
 
+## Running the AI Agent Service
+
+### Prerequisites
+
+- Python 3.10+
+- Neo4j Aura instance populated through Steps 1–3
+- Anthropic API key
+
+### Step 1 — Install AI service dependencies
+
+The root `requirements.txt` covers the data generator only. Install the
+full AI service stack separately:
+
+```bash
+cd ontology_mock
+python -m venv venv
+source venv/bin/activate        # Mac / Linux
+# venv\Scripts\activate         # Windows
+
+pip install \
+  fastapi uvicorn[standard] python-dotenv \
+  langchain langchain-anthropic langchain-community langchain-text-splitters \
+  neo4j \
+  sentence-transformers \
+  pypdf docx2txt \
+  pydantic
+```
+
+### Step 2 — Configure credentials
+
+Copy the example environment file and fill in your credentials:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your values:
+
+```ini
+# Neo4j Aura
+NEO4J_URI=neo4j+s://<your-aura-id>.databases.neo4j.io
+NEO4J_USERNAME=neo4j
+NEO4J_PASSWORD=<your-password>
+NEO4J_DATABASE=neo4j
+
+# Anthropic
+ANTHROPIC_API_KEY=sk-ant-...
+
+# Vector index (used by GraphRAG / Step 5)
+VECTOR_INDEX_NAME=supply_chain_knowledge
+EMBEDDING_MODEL=all-MiniLM-L6-v2
+```
+
+### Step 3 — Start the FastAPI server
+
+```bash
+uvicorn app_main:app_main --reload --port 8000
+```
+
+Expected output:
+
+```
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Application startup complete.
+```
+
+---
+
+### Swagger UI
+
+Open **`http://localhost:8000/docs`** in your browser to get the full
+interactive API explorer.
+
+All endpoints are grouped under `/api/v1`:
+
+| Group | Endpoint | Method | Description |
+|-------|----------|--------|-------------|
+| Graph query | `/api/v1/ask` | POST | Natural language → Cypher → answer |
+| Graph + Docs | `/api/v1/ask-with-docs` | POST | GraphRAG: graph + vector document search |
+| Anomaly | `/api/v1/anomaly/detect` | POST | Full anomaly sweep (all types) |
+| Anomaly | `/api/v1/anomaly/detect/critical` | POST | CRITICAL severity only (fast shortcut) |
+| Anomaly | `/api/v1/anomaly/types` | GET | List all registered anomaly types |
+| Pipeline | `/api/v1/pipeline/run` | POST | Full 4-agent pipeline: Detect → Root Cause → Impact → Recommend |
+| Pipeline | `/api/v1/anomaly/{id}/root-cause` | POST | Root cause analysis for one signal |
+| Pipeline | `/api/v1/anomaly/{id}/impact` | POST | Downstream impact analysis for one signal |
+| Pipeline | `/api/v1/anomaly/{id}/recommend` | POST | Recommendations for one signal |
+| Knowledge base | `/api/v1/knowledge-base/stats` | GET | Document chunk stats from vector index |
+| Utility | `/api/v1/health` | GET | Service health check |
+| Utility | `/api/v1/sample-questions` | GET | Example questions by category |
+
+**Try it in Swagger:**
+
+1. Click any endpoint to expand it.
+2. Click **Try it out**.
+3. Edit the request body (pre-filled with defaults).
+4. Click **Execute** — the response appears immediately below.
+
+Quick smoke test — paste this into `/api/v1/ask`:
+```json
+{
+  "question": "Which vendors are at high risk right now?",
+  "show_cypher": true
+}
+```
+
+---
+
+### Chatbox (browser UI)
+
+Open **`tests/chat.html`** directly in your browser — no additional server
+needed. The file calls the FastAPI server at `http://localhost:8000/api/v1/ask`
+so the server must already be running.
+
+**Interface features:**
+
+| Feature | How to use |
+|---------|------------|
+| Ask a question | Type in the input bar and press **Enter** or click **Ask** |
+| Quick suggestions | Click any chip at the top to pre-fill and send a sample question |
+| Show Cypher | Each answer includes a **Show generated Cypher ↓** link that reveals the query the LLM produced |
+| Graph only mode | Default — queries the knowledge graph directly |
+| GraphRAG mode | Switch to **Graph + Documents** to combine graph data with ingested SOP documents |
+
+**Sample questions to try:**
+
+```
+Which vendors are at high risk right now?
+Which warehouses have stockouts?
+Which plants are over capacity?
+Show me actionable vendor alternatives
+Which VIP customers are at risk?
+```
+
+---
+
 ## Implementation Path
 
 Follow the steps in order. Each step builds on the output of the previous one.
