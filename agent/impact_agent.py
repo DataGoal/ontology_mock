@@ -1,36 +1,13 @@
 # agent/impact_agent.py
 
-import os
 from typing import List, Dict
-from dotenv import load_dotenv
-from neo4j import GraphDatabase
-from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
+from agent.config import NEO4J_DATABASE, get_driver, get_llm
 from models.anomaly import AnomalySignal
 from models.impact import ImpactReport, ImpactedCustomer, ImpactedProduct
 from agent.prompts import IMPACT_ANALYSIS_PROMPT
-
-load_dotenv()
-
-NEO4J_URI      = os.getenv("NEO4J_URI")
-NEO4J_USER     = os.getenv("NEO4J_USERNAME")
-NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
-NEO4J_DATABASE = os.getenv("NEO4J_DATABASE", "neo4j")
-
-
-def get_driver():
-    return GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
-
-
-def get_llm():
-    return ChatAnthropic(
-        model="claude-sonnet-4-6",
-        temperature=0,
-        anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
-        max_tokens=400
-    )
 
 
 # ── Downstream traversal queries ──────────────────────────────────────────────
@@ -299,7 +276,7 @@ def run_impact_analysis(
     report = build_impact_report(signal, customers, products)
 
     if with_narrative:
-        llm              = get_llm()
+        llm              = get_llm(max_tokens=400)
         report.narrative = generate_impact_narrative(report, llm)
 
     return report

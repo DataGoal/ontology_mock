@@ -7,18 +7,11 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from neo4j.exceptions import CypherSyntaxError, ClientError
 
+load_dotenv()
+
 # Choose your LLM — uncomment ONE block:
 
-# --- Option A: OpenAI ---
-# from langchain_openai import ChatOpenAI
-# def get_llm():
-#     return ChatOpenAI(
-#         model="gpt-4o",
-#         temperature=0,              # temperature=0 = deterministic, critical for Cypher
-#         openai_api_key=os.getenv("OPENAI_API_KEY")
-#    )
-
-# --- Option B: Anthropic Claude ---
+# --- Option A: Anthropic Claude (active) ---
 from langchain_anthropic import ChatAnthropic
 def get_llm():
     return ChatAnthropic(
@@ -27,7 +20,14 @@ def get_llm():
         anthropic_api_key=os.getenv("ANTHROPIC_API_KEY")
     )
 
-load_dotenv()
+# --- Option B: OpenAI ---
+# from langchain_openai import ChatOpenAI
+# def get_llm():
+#     return ChatOpenAI(
+#         model="gpt-4o",
+#         temperature=0,
+#         openai_api_key=os.getenv("OPENAI_API_KEY")
+#     )
 
 from agent.schema_context import GRAPH_SCHEMA_CONTEXT
 from agent.prompts import (

@@ -74,8 +74,8 @@ In **Neo4j Aura console** (console.neo4j.io):
 ```bash
 # Run these in your terminal
 
-mkdir cpg_supply_agent
-cd cpg_supply_agent
+mkdir ontology_mock
+cd ontology_mock
 
 # Create virtual environment
 python -m venv venv
@@ -128,9 +128,9 @@ APP_PORT=8000
 ### 1.4 — Create project file structure
 
 ```
-cpg_supply_agent/
+ontology_mock/
 ├── .env
-├── main.py              ← FastAPI app entry point
+├── app_main.py          ← FastAPI app entry point
 ├── agent/
 │   ├── __init__.py
 │   ├── graph_chain.py   ← LangChain + Neo4j wiring
@@ -146,7 +146,7 @@ Create the folders:
 ```bash
 mkdir agent api
 touch agent/__init__.py api/__init__.py
-touch main.py agent/graph_chain.py agent/schema_context.py agent/prompts.py api/routes.py
+touch app_main.py agent/graph_chain.py agent/schema_context.py agent/prompts.py api/routes.py
 ```
 
 ---
@@ -485,22 +485,22 @@ from neo4j.exceptions import CypherSyntaxError, ClientError
 
 # Choose your LLM — uncomment ONE block:
 
-# --- Option A: OpenAI ---
-from langchain_openai import ChatOpenAI
+# --- Option A: Anthropic Claude (active) ---
+from langchain_anthropic import ChatAnthropic
 def get_llm():
-    return ChatOpenAI(
-        model="gpt-4o",
+    return ChatAnthropic(
+        model="claude-sonnet-4-6",
         temperature=0,              # temperature=0 = deterministic, critical for Cypher
-        openai_api_key=os.getenv("OPENAI_API_KEY")
+        anthropic_api_key=os.getenv("ANTHROPIC_API_KEY")
     )
 
-# --- Option B: Anthropic Claude ---
-# from langchain_anthropic import ChatAnthropic
+# --- Option B: OpenAI ---
+# from langchain_openai import ChatOpenAI
 # def get_llm():
-#     return ChatAnthropic(
-#         model="claude-opus-4-6",
+#     return ChatOpenAI(
+#         model="gpt-4o",
 #         temperature=0,
-#         anthropic_api_key=os.getenv("ANTHROPIC_API_KEY")
+#         openai_api_key=os.getenv("OPENAI_API_KEY")
 #     )
 
 load_dotenv()
@@ -524,6 +524,7 @@ def get_neo4j_graph():
         url=os.getenv("NEO4J_URI"),
         username=os.getenv("NEO4J_USERNAME"),
         password=os.getenv("NEO4J_PASSWORD"),
+        database=os.getenv("NEO4J_DATABASE", "neo4j"),
     )
 
 
@@ -765,7 +766,7 @@ async def sample_questions():
 ## Section 6 — FastAPI Main App
 
 ```python
-# main.py
+# app_main.py
 
 import os
 from fastapi import FastAPI
@@ -775,14 +776,14 @@ from api.routes import router
 
 load_dotenv()
 
-app = FastAPI(
+app_main = FastAPI(
     title       = "CPG Supply Chain AI Agent",
     description = "Natural language interface to the supply chain knowledge graph",
     version     = "1.0.0"
 )
 
 # CORS — allow requests from any frontend during PoC
-app.add_middleware(
+app_main.add_middleware(
     CORSMiddleware,
     allow_origins     = ["*"],
     allow_credentials = True,
@@ -790,10 +791,10 @@ app.add_middleware(
     allow_headers     = ["*"],
 )
 
-app.include_router(router, prefix="/api/v1")
+app_main.include_router(router, prefix="/api/v1")
 
 
-@app.get("/")
+@app_main.get("/")
 async def root():
     return {
         "message": "CPG Supply Chain AI Agent is running",
@@ -810,7 +811,7 @@ async def root():
 
 ```bash
 # From your project root, with venv activated:
-uvicorn main:app --reload --port 8000
+uvicorn app_main:app_main --reload --port 8000
 ```
 
 You should see:
@@ -1126,7 +1127,7 @@ server is running on port 8000 first.
 | `LLM generates wrong node label` | Schema context not loading | Print `GRAPH_SCHEMA_CONTEXT` in `graph_chain.py` to confirm it loads |
 | `Cypher returns 0 results` | LLM used wrong property name | Set `show_cypher: true` and manually run the query in Aura console |
 | `openai.AuthenticationError` | Bad API key | Check `.env` has no spaces around the `=` sign |
-| `CORS error in browser` | Frontend blocked by CORS | Already handled — `allow_origins=["*"]` in `main.py` |
+| `CORS error in browser` | Frontend blocked by CORS | Already handled — `allow_origins=["*"]` in `app_main.py` |
 | `Answer is too generic` | LLM ignoring results | Check `results_text` is not empty before answer chain |
 | `ModuleNotFoundError: langchain` | venv not activated | Run `source venv/bin/activate` before `uvicorn` |
 | LLM adds backticks to Cypher | Model ignoring format rules | The `.replace("```cypher"...)` strip in `graph_chain.py` handles this |
@@ -1139,7 +1140,7 @@ Run the full pipeline test in order:
 
 ```bash
 # Terminal 1 — start the server
-uvicorn main:app --reload --port 8000
+uvicorn app_main:app_main --reload --port 8000
 
 # Terminal 2 — run the test suite
 python test_agent.py

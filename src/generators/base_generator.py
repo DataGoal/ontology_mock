@@ -5,7 +5,6 @@ Provides shared sampling utilities, distribution helpers, and FK resolution.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any
 import uuid
 
 import numpy as np
@@ -114,7 +113,7 @@ class BaseGenerator(ABC):
             )
         df = self.state[dim_table]
         if active_only and active_col in df.columns:
-            df = df[df[active_col] == True]
+            df = df[df[active_col]]
         return df[pk_col].tolist()
 
     def sample_fk(self, dim_table: str, pk_col: str,

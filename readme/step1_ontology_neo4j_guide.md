@@ -292,11 +292,10 @@ Here's what each relationship means and what properties live **on the relationsh
 (Plant)        -[:PRODUCES]->          (Product)
 (Warehouse)    -[:STOCKS]->            (Product)
 (Warehouse)    -[:SHIPS_TO]->          (Destination)
-(Carrier)      -[:HANDLES]->           (Shipment)    [future node]
+(Carrier)      -[:HANDLES_ROUTE]->     (Destination)
 (Customer)     -[:DEMANDS]->           (Product)
 (Customer)     -[:ORDERS_TO]->         (Destination)
 (Vendor)       -[:ALTERNATIVE_FOR]->   (Vendor)      [computed, no direct source table]
-(Product)      -[:STORED_IN]->         (Warehouse)   [inverse convenience relationship]
 ```
 
 ### Why relationships carry properties
@@ -518,14 +517,14 @@ CREATE (c)-[:DEMANDS {
 RETURN c, p;
 ```
 
-### 7.6 — Carrier COVERS Route (Warehouse → Destination)
+### 7.6 — Carrier HANDLES_ROUTE (Carrier → Destination)
 (This is a new relationship not in the star schema — graph-native enrichment)
 
 ```cypher
 MATCH (ca:Carrier {carrier_id: 'ca-001'})
 MATCH (w:Warehouse {warehouse_id: 'wh-001'})
 MATCH (d:Destination {destination_id: 'dest-001'})
-CREATE (ca)-[:COVERS_ROUTE {
+CREATE (ca)-[:HANDLES_ROUTE {
   origin_warehouse_id:  'wh-001',
   avg_transit_days:     3.5,
   on_time_delivery_pct: 94.2,
@@ -631,7 +630,8 @@ Expected output:
 - STOCKS
 - SHIPS_TO
 - DEMANDS
-- COVERS_ROUTE
+- HANDLES_ROUTE
+- ORDERS_TO
 - ALTERNATIVE_FOR
 
 ---
@@ -667,7 +667,7 @@ CREATE (meta:OntologyMeta {
   domain:         'Consumer Packaged Goods',
   created_date:   '2025-04-01',
   node_types:     ['Vendor','Product','Plant','Warehouse','Customer','Carrier','Destination','Shift','Date'],
-  relationship_types: ['SUPPLIES','PRODUCES','STOCKS','SHIPS_TO','DEMANDS','COVERS_ROUTE','ALTERNATIVE_FOR'],
+  relationship_types: ['SUPPLIES','PRODUCES','STOCKS','SHIPS_TO','HANDLES_ROUTE','DEMANDS','ORDERS_TO','ALTERNATIVE_FOR'],
   source_schema:  'schema.yaml',
   description:    'Star schema converted to property graph for supply chain AI agents'
 })
@@ -691,7 +691,8 @@ RELATIONSHIP TYPES:
   [:STOCKS]            Warehouse → Product   (inventory snapshot as properties)
   [:SHIPS_TO]          Warehouse → Dest      (shipment performance as properties)
   [:DEMANDS]           Customer → Product    (fulfillment metrics as properties)
-  [:COVERS_ROUTE]      Carrier → Dest        (transit SLA as properties)
+  [:HANDLES_ROUTE]     Carrier → Dest        (transit SLA as properties)
+  [:ORDERS_TO]         Customer → Dest       (order destination as properties)
   [:ALTERNATIVE_FOR]   Vendor → Vendor       (computed substitution score)
 
 SAMPLE DATA:          2 Vendors, 1 Product, 1 Plant, 1 Warehouse,

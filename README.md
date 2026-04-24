@@ -20,8 +20,12 @@ The generated data is suitable for:
 
 ## Project Structure
 
+This project has two layers: a **mock data generator** (Part 1) and an **AI agent service** (Parts 2–6) built on top of the generated Neo4j knowledge graph.
+
 ```
-cpg_data_generator/
+ontology_mock/
+│
+├── ── Part 1: Mock Data Generator ──────────────────────────────────────────
 │
 ├── configs/                          # YAML configuration files
 │   ├── schema.yaml                   # Table schemas with column types and constraints
@@ -35,7 +39,7 @@ cpg_data_generator/
 │   │   ├── dim_generators.py         # 9 dimension table generators
 │   │   └── fact_generators.py        # 5 fact table generators
 │   ├── pipeline.py                   # Orchestration: generate → validate → write
-│   └── writer.py                     # CSV / Parquet / JSON output
+│   └── writer.py                     # CSV / Parquet / JSON output (local + Databricks)
 │
 ├── utils/                            # Shared helpers
 │   ├── cpg_reference_data.py         # CPG brand/product/vendor/plant master lists
@@ -47,12 +51,54 @@ cpg_data_generator/
 │   │   ├── 01_dim_tables.sql         # Databricks Delta DDL for all dimension tables
 │   │   ├── 02_fact_tables.sql        # Databricks Delta DDL for all fact tables
 │   │   └── 03_views_and_semantic_layer.sql  # Enriched views + supply chain scorecard
-│   └── queries/
-│       └── sample_analytics.sql      # 8 sample analytics queries (vendor, OTIF, OEE…)
+│   ├── queries/
+│   │   └── sample_analytics.sql      # 8 sample analytics queries (vendor, OTIF, OEE…)
+│   └── metric_views/                 # YAML metric view definitions per fact table
+│
+├── main.py                           # CLI entry point: python main.py --profile dev
+├── databricks_main.py                # Databricks notebook entry point
+│
+├── ── Part 2–6: AI Agent Service ───────────────────────────────────────────
+│
+├── agent/                            # LangChain + Neo4j agent modules
+│   ├── config.py                     # Shared Neo4j connection + LLM factory
+│   ├── graph_chain.py                # Graph query agent: NL → Cypher → answer
+│   ├── rag_chain.py                  # Hybrid agent: graph + vector document search
+│   ├── anomaly_agent.py              # Anomaly detection (threshold-based Cypher queries)
+│   ├── root_cause_agent.py           # Upstream graph traversal + weighted scoring
+│   ├── impact_agent.py               # Downstream impact analysis
+│   ├── recommendation_agent.py       # Ranked action recommendations
+│   ├── anomaly_queries.py            # Cypher query registry for all anomaly types
+│   ├── document_loader.py            # PDF/text ingestion + HuggingFace embeddings
+│   ├── schema_context.py             # Graph schema string injected into Cypher prompts
+│   └── prompts.py                    # All LLM prompt templates
+│
+├── api/                              # FastAPI REST layer
+│   └── routes.py                     # All endpoints: /ask, /anomaly, /pipeline, /knowledge-base
+│
+├── models/                           # Pydantic v2 output models
+│   ├── anomaly.py                    # AnomalySignal, ANOMALY_TYPE_REGISTRY
+│   ├── root_cause.py                 # RootCauseReport, RootCauseNode
+│   ├── impact.py                     # ImpactReport, ImpactedCustomer, ImpactedProduct
+│   └── recommendation.py             # RecommendationSet, Recommendation
+│
+├── docs/                             # Knowledge base documents (PDFs ingested via ingest.py)
+├── app_main.py                       # FastAPI entry point: uvicorn app_main:app_main
+├── pipeline.py                       # Orchestrates all 4 agents end-to-end
+├── ingest.py                         # Loads docs/ into Neo4j KnowledgeChunk vector index
+│
+├── readme/                           # Step-by-step implementation guides
+│   ├── README.md                     # Guide index with links, order and prerequisites
+│   ├── step1_ontology_neo4j_guide.md # Define ontology schema in Neo4j Desktop
+│   ├── step2_databricks_to_neo4j.md  # ETL: load Delta tables into Neo4j
+│   ├── step3_graph_enrichment.md     # Graph enrichment: risk signals & centrality
+│   ├── step4_ai_agent_integration.md # LangChain + Neo4j chatbox
+│   ├── step5_graphrag_knowledge_base.md # GraphRAG: graph + vector hybrid agent
+│   ├── step6a_anomaly_detection_agent.md # Anomaly Detection Agent
+│   ├── step6_agents.md               # Root Cause, Impact Analysis & Recommendation Agents
+│   └── step9_neo4j_bloom_visualization.md # Neo4j Bloom visual perspectives
 │
 ├── output/                           # Generated data files (git-ignored)
-├── tests/                            # Unit tests
-├── main.py                           # CLI entry point
 ├── requirements.txt
 └── README.md
 ```
@@ -92,33 +138,26 @@ cpg_data_generator/
 ### 1. Install dependencies
 
 ```bash
-cd cpg_data_generator
+cd ontology_mock
 pip install -r requirements.txt
+cp .env.example .env   # fill in your Neo4j and Anthropic credentials
 ```
 
-### 2. Generate dev dataset (default)
+### 2. Generate mock data
 
 ```bash
-python main.py
+# Generate dev-scale data (~4,300 rows) as CSV files in output/
+python main.py --profile dev --format csv
+
+# Generate staging-scale data and write to Databricks Delta
+python main.py --profile staging --format delta --target databricks
 ```
 
-Generated CSV files will appear in `./output/`.
+### 3. Run on Databricks
 
-### 3. Use CLI options
-
-```bash
-# Staging profile with parquet output
-python main.py --profile staging --format parquet
-
-# Production scale, compressed parquet, skip validation (faster)
-python main.py --profile prod --format parquet --compress --no-validate
-
-# Generate only (no file I/O)
-python main.py --no-write
-
-# Custom output directory
-python main.py --output /data/cpg_mock --format csv
-```
+Open `databricks_main.py` as a notebook in Databricks Repos.  Set the
+widgets (`profile`, `catalog`, `db_schema`) and run all cells.  Output
+is written as Delta tables.
 
 ### 4. Use as a Python library
 
@@ -153,7 +192,11 @@ Edit `active_profile` in `configs/data_volumes.yaml`:
 active_profile: staging  # dev | staging | prod
 ```
 
-Or override via CLI: `python main.py --profile prod`
+Or override programmatically before calling `pipeline.run()`:
+```python
+pipeline.config["volumes"]["active_profile"] = "staging"
+pipeline.row_counts = _get_row_counts(pipeline.config)
+```
 
 ### Adding a new dimension
 
@@ -221,6 +264,26 @@ The pipeline runs three validation tiers after generation:
 1. **Schema validation** – null checks, type checks, range checks, uniqueness
 2. **Business rule validation** – domain logic (e.g. total_cost = qty × unit_cost, flags are mutually exclusive)
 3. **Referential integrity** – every FK in every fact table resolves to a valid dimension PK
+
+---
+
+## Knowledge Graph (Neo4j)
+
+The `readme/` directory contains a three-step guide for converting the
+generated star-schema data into a CPG supply chain knowledge graph in Neo4j.
+
+| Step | Guide | What it covers |
+|---|---|---|
+| 1 | [`step1_ontology_neo4j_guide.md`](readme/step1_ontology_neo4j_guide.md) | Define constraints, indexes, and ontology schema in Neo4j Desktop |
+| 2 | [`step2_databricks_to_neo4j.md`](readme/step2_databricks_to_neo4j.md) | ETL pipeline: load Delta tables as nodes and aggregated relationships |
+| 3 | [`step3_graph_enrichment.md`](readme/step3_graph_enrichment.md) | Compute risk flags, composite scores, and centrality signals in Cypher |
+| 4 | [`step4_ai_agent_integration.md`](readme/step4_ai_agent_integration.md) | LangChain + Neo4j chatbox — natural language to Cypher |
+| 5 | [`step5_graphrag_knowledge_base.md`](readme/step5_graphrag_knowledge_base.md) | GraphRAG: hybrid agent combining graph traversal + vector document search |
+| 6A | [`step6a_anomaly_detection_agent.md`](readme/step6a_anomaly_detection_agent.md) | Anomaly Detection Agent — deterministic threshold-based Cypher detection |
+| 6B–D | [`step6_agents.md`](readme/step6_agents.md) | Root Cause, Impact Analysis & Recommendation Agents |
+| 9 | [`step9_neo4j_bloom_visualization.md`](readme/step9_neo4j_bloom_visualization.md) | Neo4j Bloom visual perspectives for graph exploration |
+
+See [`readme/README.md`](readme/README.md) for the full implementation path with prerequisites.
 
 ---
 

@@ -3,43 +3,16 @@
 # Runs all Cypher queries from the registry, converts results into
 # AnomalySignal objects, and optionally adds Claude-written narratives.
 
-import os
 import uuid
 from datetime import datetime, timezone
 from typing import List, Optional, Dict
-from dotenv import load_dotenv
-from neo4j import GraphDatabase
-from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
+from agent.config import NEO4J_DATABASE, get_driver, get_llm
 from models.anomaly import AnomalySignal, ANOMALY_TYPE_REGISTRY
 from agent.anomaly_queries import ANOMALY_QUERY_REGISTRY
 from agent.prompts import ANOMALY_NARRATIVE_PROMPT
-
-load_dotenv()
-
-NEO4J_URI      = os.getenv("NEO4J_URI")
-NEO4J_USER     = os.getenv("NEO4J_USERNAME")
-NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
-NEO4J_DATABASE = os.getenv("NEO4J_DATABASE", "neo4j")
-
-
-# ── Neo4j driver ──────────────────────────────────────────────────────────────
-
-def get_driver():
-    return GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
-
-
-# ── LLM for narrative generation only ────────────────────────────────────────
-
-def get_llm():
-    return ChatAnthropic(
-        model="claude-sonnet-4-6",
-        temperature=0,
-        anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
-        max_tokens=300       # narratives are short — cap tokens
-    )
 
 
 # ── Anomaly ID generator ──────────────────────────────────────────────────────
@@ -239,7 +212,7 @@ def run_anomaly_detection(
     # Add Claude narratives if requested
     if with_narratives and all_signals:
         print(f"\n📝 Generating narratives for {len(all_signals)} signal(s)...")
-        llm = get_llm()
+        llm = get_llm(max_tokens=300)
         all_signals = [add_narrative(s, llm) for s in all_signals]
 
     # Build response summary

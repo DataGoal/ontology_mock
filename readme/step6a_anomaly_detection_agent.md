@@ -72,7 +72,7 @@ it as input and knows exactly what entity triggered and why.
 ```
 ✅ Steps 1-5 complete
 ✅ Neo4j Aura instance running with enriched graph from Step 3
-✅ cpg_supply_agent/ project with venv activated
+✅ ontology_mock/ project with venv activated
 ✅ Claude (Anthropic) API key in .env
 ✅ FastAPI server from Step 4 is the base we extend
 ```
@@ -84,7 +84,7 @@ it as input and knows exactly what entity triggered and why.
 Add these new files to your existing project:
 
 ```
-cpg_supply_agent/
+ontology_mock/
 ├── .env
 ├── main.py
 ├── agent/
@@ -829,7 +829,7 @@ load_dotenv()
 NEO4J_URI      = os.getenv("NEO4J_URI")
 NEO4J_USER     = os.getenv("NEO4J_USERNAME")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
-NEO4J_DATABASE = "neo4j"
+NEO4J_DATABASE = os.getenv("NEO4J_DATABASE", "neo4j")
 
 
 # ── Neo4j driver ──────────────────────────────────────────────────────────────

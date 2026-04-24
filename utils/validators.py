@@ -5,7 +5,6 @@ Validates generated DataFrames against schema rules and business constraints.
 from __future__ import annotations
 
 import pandas as pd
-from typing import Any
 from utils.logger import get_logger
 
 logger = get_logger("validators")

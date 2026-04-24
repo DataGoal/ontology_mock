@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
-from typing import Any
 
 import numpy as np
 import yaml
@@ -114,7 +113,7 @@ class CPGDataPipeline:
     def __init__(
         self,
         configs_dir: str = "configs",
-        output_dir: str = None,
+        output_dir: str | None = None,
         writer: "DataWriter | DatabricksWriter | None" = None,
     ):
         """
@@ -208,14 +207,7 @@ class CPGDataPipeline:
 
         t0 = time.time()
         try:
-            if table_name == "dim_date":
-                # Date dim ignores n; uses date range
-                df = generator.generate(n)
-            elif table_name == "dim_shift":
-                # Shift dim is always 3 rows
-                df = generator.generate(3)
-            else:
-                df = generator.generate(n)
+            df = generator.generate(n)
 
             elapsed_ms = (time.time() - t0) * 1000
             logger.info(f"  ✓ {table_name:<25} {len(df):>8,} rows  ({elapsed_ms:.0f}ms)")

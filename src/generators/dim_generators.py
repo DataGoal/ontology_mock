@@ -8,9 +8,7 @@ Dimensions:
 """
 from __future__ import annotations
 
-import random
-from datetime import date, datetime, timedelta, time
-from typing import Any
+from datetime import date, datetime, timedelta
 
 import numpy as np
 import pandas as pd
@@ -75,7 +73,7 @@ class DateDimGenerator(BaseGenerator):
         for i in range(delta):
             d = start_dt + timedelta(days=i)
             rows.append({
-                "date_id":     str(__import__("uuid").uuid4()),
+                "date_id":     str(self.uuids(1)[0]),
                 "full_date":   d.isoformat(),
                 "year":        d.year,
                 "quarter":     (d.month - 1) // 3 + 1,

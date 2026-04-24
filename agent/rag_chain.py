@@ -3,19 +3,13 @@
 
 import os
 from typing import List, Dict, Any
-from dotenv import load_dotenv
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from neo4j import GraphDatabase
 
-load_dotenv()
+from agent.config import NEO4J_DATABASE, get_driver
 
-NEO4J_URI        = os.getenv("NEO4J_URI")
-NEO4J_USER       = os.getenv("NEO4J_USERNAME")
-NEO4J_PASSWORD   = os.getenv("NEO4J_PASSWORD")
-NEO4J_DATABASE   = "neo4j"
-VECTOR_INDEX     = os.getenv("VECTOR_INDEX_NAME", "supply_chain_knowledge")
-TOP_K_CHUNKS     = 5     # number of document chunks to retrieve per query
+VECTOR_INDEX = os.getenv("VECTOR_INDEX_NAME", "supply_chain_knowledge")
+TOP_K_CHUNKS = 5
 
 
 # ── Embedding ─────────────────────────────────────────────────────────────────
@@ -88,7 +82,7 @@ def vector_search(question: str, top_k: int = TOP_K_CHUNKS,
             "embedding":  question_vector,
         }
 
-    driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
+    driver = get_driver()
     try:
         with driver.session(database=NEO4J_DATABASE) as session:
             result = session.run(cypher, params)

@@ -77,7 +77,7 @@ Your Documents (PDFs, DOCX, TXT)
 
 ```
 ✅ Step 4 complete — FastAPI agent running, chatbox working
-✅ cpg_supply_agent/ project folder exists with venv activated
+✅ ontology_mock/ project folder exists with venv activated
 ✅ Neo4j Aura Free Tier — vector index support confirmed
    (Aura Free supports vector indexes as of Neo4j 5.x)
 ✅ You have at least 2-3 sample documents to test with
@@ -127,10 +127,10 @@ pip install tiktoken                 # token counting for chunking
 
 ## Section 2 — Update Project Structure
 
-Add new files to your existing `cpg_supply_agent/` project:
+Add new files to your existing `ontology_mock/` project:
 
 ```
-cpg_supply_agent/
+ontology_mock/
 ├── .env                          ← add EMBEDDING_MODEL var (Section 3)
 ├── main.py                       ← add new /ask-with-docs route
 ├── agent/
@@ -268,7 +268,7 @@ from langchain_community.document_loaders import (
     Docx2txtLoader,
     TextLoader,
 )
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 # ── Embedding model ───────────────────────────────────────────────────────────
 # Using sentence-transformers (HuggingFace) as the embedding provider.
@@ -474,7 +474,7 @@ load_dotenv()
 NEO4J_URI      = os.getenv("NEO4J_URI")
 NEO4J_USER     = os.getenv("NEO4J_USERNAME")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
-NEO4J_DATABASE = "neo4j"
+NEO4J_DATABASE = os.getenv("NEO4J_DATABASE", "neo4j")
 DOCS_FOLDER    = os.getenv("DOCS_FOLDER", "./docs")
 BATCH_SIZE     = 50   # smaller batches — embeddings are large lists
 
@@ -505,6 +505,7 @@ SET kc.text         = row.text,
 LINK_TO_VENDORS_CYPHER = """
 MATCH (kc:KnowledgeChunk)
 WHERE kc.entity_type = 'Vendor'
+WITH kc
 MATCH (v:Vendor)
 WHERE NOT EXISTS { (v)-[:HAS_DOCUMENT]->(kc) }
 MERGE (v)-[:HAS_DOCUMENT {source_file: kc.source_file}]->(kc)
@@ -513,14 +514,16 @@ MERGE (v)-[:HAS_DOCUMENT {source_file: kc.source_file}]->(kc)
 LINK_TO_PRODUCTS_CYPHER = """
 MATCH (kc:KnowledgeChunk)
 WHERE kc.entity_type = 'Product'
+WITH kc
 MATCH (p:Product)
-WHERE NOT EXISTS { (v)-[:HAS_DOCUMENT]->(kc) }
+WHERE NOT EXISTS { (p)-[:HAS_DOCUMENT]->(kc) }
 MERGE (p)-[:HAS_DOCUMENT {source_file: kc.source_file}]->(kc)
 """
 
 LINK_TO_PLANTS_CYPHER = """
 MATCH (kc:KnowledgeChunk)
 WHERE kc.entity_type = 'Plant'
+WITH kc
 MATCH (pl:Plant)
 WHERE NOT EXISTS { (pl)-[:HAS_DOCUMENT]->(kc) }
 MERGE (pl)-[:HAS_DOCUMENT {source_file: kc.source_file}]->(kc)
@@ -529,6 +532,7 @@ MERGE (pl)-[:HAS_DOCUMENT {source_file: kc.source_file}]->(kc)
 LINK_TO_CARRIERS_CYPHER = """
 MATCH (kc:KnowledgeChunk)
 WHERE kc.entity_type = 'Carrier'
+WITH kc
 MATCH (ca:Carrier)
 WHERE NOT EXISTS { (ca)-[:HAS_DOCUMENT]->(kc) }
 MERGE (ca)-[:HAS_DOCUMENT {source_file: kc.source_file}]->(kc)
@@ -540,12 +544,12 @@ def write_chunks_to_neo4j(driver, chunks: list):
     total   = len(chunks)
     written = 0
 
-    with driver.session(database=NEO4J_DATABASE) as session:
-        for i in range(0, total, BATCH_SIZE):
-            batch = chunks[i: i + BATCH_SIZE]
-            session.run(CHUNK_WRITE_CYPHER, {"rows": batch})
-            written += len(batch)
-            print(f"  Written {written}/{total} chunks to Neo4j")
+    for i in range(0, total, BATCH_SIZE):
+        batch = chunks[i: i + BATCH_SIZE]
+        with driver.session(database=NEO4J_DATABASE) as session:
+            session.execute_write(lambda tx, b=batch: tx.run(CHUNK_WRITE_CYPHER, {"rows": b}))
+        written += len(batch)
+        print(f"  Written {written}/{total} chunks to Neo4j")
 
     print(f"  ✅ All {total} chunks written.")
 
@@ -557,15 +561,15 @@ def link_chunks_to_entities(driver):
     General-tagged documents are accessible to all entity types via vector search.
     """
     print("\n🔗 Linking document chunks to graph entities...")
-    with driver.session(database=NEO4J_DATABASE) as session:
-        session.run(LINK_TO_VENDORS_CYPHER)
-        print("  ✅ Linked to Vendor nodes")
-        session.run(LINK_TO_PRODUCTS_CYPHER)
-        print("  ✅ Linked to Product nodes")
-        session.run(LINK_TO_PLANTS_CYPHER)
-        print("  ✅ Linked to Plant nodes")
-        session.run(LINK_TO_CARRIERS_CYPHER)
-        print("  ✅ Linked to Carrier nodes")
+    for cypher, label in [
+        (LINK_TO_VENDORS_CYPHER,  "Vendor"),
+        (LINK_TO_PRODUCTS_CYPHER, "Product"),
+        (LINK_TO_PLANTS_CYPHER,   "Plant"),
+        (LINK_TO_CARRIERS_CYPHER, "Carrier"),
+    ]:
+        with driver.session(database=NEO4J_DATABASE) as session:
+            session.execute_write(lambda tx, c=cypher: tx.run(c))
+        print(f"  ✅ Linked to {label} nodes")
 
 
 def verify_ingestion(driver):
@@ -1090,7 +1094,7 @@ LIMIT 5;
 
 ```bash
 # Restart the server first to pick up new routes
-uvicorn main:app --reload --port 8000
+uvicorn app_main:app_main --reload --port 8000
 
 # Test a question that benefits from both graph + documents
 curl -X POST http://localhost:8000/api/v1/ask-with-docs \

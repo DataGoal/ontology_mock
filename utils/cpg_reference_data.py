@@ -201,25 +201,6 @@ SHIFT_DATA = [
     {"name": "Night Shift",     "start": "22:00:00", "end": "06:00:00"},
 ]
 
-# ── US Public Holidays (for DIM_DATE is_holiday flag) ─────────────────────
-
-US_FEDERAL_HOLIDAYS = {
-    # Format: (month, day) or list of specific dates
-    "fixed": [
-        (1, 1),   # New Year's Day
-        (7, 4),   # Independence Day
-        (11, 11), # Veterans Day
-        (12, 25), # Christmas Day
-    ],
-    "named": [
-        "MLK Day",       # 3rd Monday Jan
-        "Presidents Day",# 3rd Monday Feb
-        "Memorial Day",  # Last Monday May
-        "Labor Day",     # 1st Monday Sep
-        "Thanksgiving",  # 4th Thursday Nov
-    ]
-}
-
 # ── Geographic Region Mapping ─────────────────────────────────────────────
 
 COUNTRY_REGION_MAP = {

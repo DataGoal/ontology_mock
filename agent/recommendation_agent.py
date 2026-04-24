@@ -1,39 +1,16 @@
 # agent/recommendation_agent.py
 
-import os
 import uuid
 from typing import List, Dict, Optional
-from dotenv import load_dotenv
-from neo4j import GraphDatabase
-from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
+from agent.config import NEO4J_DATABASE, get_driver, get_llm
 from models.anomaly import AnomalySignal
 from models.root_cause import RootCauseReport
 from models.impact import ImpactReport
 from models.recommendation import Recommendation, RecommendationSet
 from agent.prompts import RECOMMENDATION_PROMPT
-
-load_dotenv()
-
-NEO4J_URI      = os.getenv("NEO4J_URI")
-NEO4J_USER     = os.getenv("NEO4J_USERNAME")
-NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
-NEO4J_DATABASE = os.getenv("NEO4J_DATABASE", "neo4j")
-
-
-def get_driver():
-    return GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
-
-
-def get_llm():
-    return ChatAnthropic(
-        model="claude-sonnet-4-6",
-        temperature=0,
-        anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
-        max_tokens=500
-    )
 
 
 def rec_id() -> str:
@@ -401,7 +378,7 @@ def run_recommendation_agent(
     )
 
     if with_narrative and all_recs:
-        llm              = get_llm()
+        llm              = get_llm(max_tokens=500)
         rec_set.narrative = generate_recommendation_narrative(
             signal, rec_set, root_cause, impact, llm
         )

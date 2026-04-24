@@ -557,11 +557,11 @@ load_to_neo4j(cypher_ships, ships_rows, label="SHIPS_TO relationships")
 
 ---
 
-### 5.5 — HANDLED_BY: Carrier covers Warehouse → Destination route
+### 5.5 — HANDLES_ROUTE: Carrier covers Warehouse → Destination route
 **Source:** `fact_shipment` aggregated by `carrier_id + origin_warehouse_id + destination_id`
 
 ```python
-# Cell 17 — HANDLED_BY relationship
+# Cell 17 — HANDLES_ROUTE relationship
 
 df_handled = spark.sql("""
     SELECT
